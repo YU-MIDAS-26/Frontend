@@ -15,7 +15,7 @@
 
 ```bash
 1. 레포지토리 복사
-git clone [https://github.com/YU-SE-25/Frontend.git]
+git clone https://github.com/YU-MIDAS-26/Frontend.git
 
 2. 프로젝트 폴더로 이동
 cd Frontend
