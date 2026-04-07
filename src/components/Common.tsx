@@ -11,6 +11,14 @@ type DivProps = ComponentPropsWithoutRef<"div"> & {
   children?: ReactNode;
 };
 
+type ChipProps = DivProps & {
+  isActive?: boolean;
+};
+
+type CheckboxProps = ComponentPropsWithoutRef<"div"> & {
+  checked?: boolean;
+};
+
 const Label14 = styled.span`
   color: black;
   font-size: 14px;
@@ -125,47 +133,26 @@ export const ButtonSub2 = ({ children, ...rest }: ButtonProps) => {
   );
 };
 
-/*5번 칩*/
-const ChipMainRoot = styled.div`
+/*5, 6번 칩*/
+const ChipRoot = styled.div<{ $isActive: boolean }>`
   width: 100%;
   height: 100%;
   padding: 8px 16px;
-  background: white;
+  background: ${({ $isActive }) => ($isActive ? "#7ea0b7" : "white")};
   border-radius: 20px;
-  outline: 1px #dedede solid;
-  outline-offset: -1px;
+  outline: ${({ $isActive }) => ($isActive ? "none" : "1px #dedede solid")};
+  outline-offset: ${({ $isActive }) => ($isActive ? "0" : "-1px")};
   justify-content: center;
   align-items: center;
   gap: 10px;
   display: inline-flex;
 `;
 
-export const ChipMain = ({ children, ...rest }: DivProps) => {
+export const Chip = ({ children, isActive = false, ...rest }: ChipProps) => {
   return (
-    <ChipMainRoot {...rest}>
+    <ChipRoot $isActive={isActive} {...rest}>
       <Label14Medium>{children}</Label14Medium>
-    </ChipMainRoot>
-  );
-};
-
-/*6번 칩(활성화)*/
-const ChipSelectedRoot = styled.div`
-  width: 100%;
-  height: 100%;
-  padding: 8px 16px;
-  background: #7ea0b7;
-  border-radius: 20px;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  display: inline-flex;
-`;
-
-export const ChipSelected = ({ children, ...rest }: DivProps) => {
-  return (
-    <ChipSelectedRoot {...rest}>
-      <Label14Medium>{children}</Label14Medium>
-    </ChipSelectedRoot>
+    </ChipRoot>
   );
 };
 
@@ -197,6 +184,7 @@ export const TextField = ({ children, ...rest }: DivProps) => {
   );
 };
 
+/*8번 팝업알림(버튼 하나)*/
 const AlertMessage = styled.div`
   align-self: stretch;
   min-height: 89px;
@@ -208,7 +196,6 @@ const AlertMessage = styled.div`
   display: flex;
 `;
 
-/*8번 팝업알림(버튼 하나)*/
 const OneButtonAlertAction = styled.button`
   align-self: stretch;
   height: 40px;
@@ -347,15 +334,17 @@ export const TwoButtonAlert = ({
   );
 };
 
-/*10번 체크박스*/
-const SquareBox = styled.div`
+/*10, 11번 체크박스*/
+const SquareBox = styled.div<{ $checked: boolean }>`
   width: 16px;
   height: 16px;
   left: 4px;
   top: 4px;
   position: absolute;
   border-radius: 4px;
-  border: 1px #dedede solid;
+  border: ${({ $checked }) => ($checked ? "none" : "1px #dedede solid")};
+  background: ${({ $checked }) => ($checked ? "#7ea0b7" : "transparent")};
+  overflow: hidden;
 `;
 
 const SquareRoot = styled.div`
@@ -365,15 +354,6 @@ const SquareRoot = styled.div`
   overflow: hidden;
 `;
 
-export const Square = (props: ComponentPropsWithoutRef<"div">) => {
-  return (
-    <SquareRoot {...props}>
-      <SquareBox />
-    </SquareRoot>
-  );
-};
-
-/*11번 체크박스(활성화)*/
 const CheckVector = styled.div`
   width: 9px;
   height: 6.5px;
@@ -384,30 +364,10 @@ const CheckVector = styled.div`
   outline-offset: -1px;
 `;
 
-const CheckSquareBox = styled.div`
-  width: 16px;
-  height: 16px;
-  left: 4px;
-  top: 4px;
-  position: absolute;
-  background: #7ea0b7;
-  overflow: hidden;
-  border-radius: 4px;
-`;
-
-const CheckSquareRoot = styled.div`
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-`;
-
-export const CheckSquare = (props: ComponentPropsWithoutRef<"div">) => {
+export const Checkbox = ({ checked = false, ...props }: CheckboxProps) => {
   return (
-    <CheckSquareRoot {...props}>
-      <CheckSquareBox>
-        <CheckVector />
-      </CheckSquareBox>
-    </CheckSquareRoot>
+    <SquareRoot {...props}>
+      <SquareBox $checked={checked}>{checked && <CheckVector />}</SquareBox>
+    </SquareRoot>
   );
 };
