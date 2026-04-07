@@ -1,10 +1,28 @@
-//import { useState } from "react";
+import styled from "styled-components";
+import Topbar from "./components/Topbar";
+
+const Page = styled.div`
+  min-height: 100vh;
+  background: #f5f7f9;
+`;
+
+const Content = styled.main`
+  padding: 20px;
+`;
+
+const Title = styled.h1`
+  margin: 0;
+  text-align: center;
+`;
 
 function App() {
   return (
-    <div style={{ padding: "20px", textAlign: "center" }}>
-      <h1>Midas 2026 Frontend</h1>
-    </div>
+    <Page>
+      <Topbar isLoggedIn={false} />
+      <Content>
+        <Title>Midas 2026 Frontend</Title>
+      </Content>
+    </Page>
   );
 }
 
