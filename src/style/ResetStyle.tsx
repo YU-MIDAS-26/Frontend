@@ -59,5 +59,35 @@ table {
     text-decoration: none; /* 링크 밑줄 제거 */
     color: inherit;       /* 링크 색상을 부모 글자색이랑 맞춤 */
   }
+
+  @font-face {
+    font-family: "ONE Mobile Regular";
+    src: url("/fonts/ONE Mobile Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "ONE Mobile Title";
+    src: url("/fonts/Title.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    --font-body: "ONE Mobile", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-title: "Midas Title", "ONE Mobile", system-ui, sans-serif;
+  }
+
+  body {
+    line-height: 1;
+    font-family: var(--font-body);
+  }
+
+  .font-title {
+    font-family: var(--font-title);
+  }
 `;
 export default ResetStyle;
