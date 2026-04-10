@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 type TopbarProps = {
   isLoggedIn?: boolean;
@@ -14,11 +15,12 @@ const Bar = styled.header`
   width: 100%;
   height: 70px;
   background: #7ea0b7;
-  padding: 0 28px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  box-sizing: border-box;
 `;
 
 const Section = styled.div`
@@ -34,12 +36,12 @@ const LeftSection = styled(Section)`
 
 const CenterSection = styled(Section)`
   justify-content: center;
-  gap: 28px;
+  gap: 36px;
 `;
 
 const RightSection = styled(Section)`
   justify-content: flex-end;
-  gap: 20px;
+  gap: 16px;
 `;
 
 const ActionButton = styled.button`
@@ -47,24 +49,37 @@ const ActionButton = styled.button`
   background: transparent;
   color: #111111;
   font-size: 16px;
-  font-weight: 500;
+  font-family: "Segoe UI", "Noto Sans KR", sans-serif;
+  font-weight: 700;
+  line-height: 1;
   cursor: pointer;
   padding: 0;
 `;
 
 const LogoButton = styled(ActionButton)`
   font-weight: 700;
+  letter-spacing: 0.2px;
 `;
 
 export default function Topbar({
   isLoggedIn = false,
   siteName = "B-SIGHT",
-  menus = ["재료 등록", "대출 확인", "직원 관리"],
+  menus = ["재료 등록", "매출 확인", "직원 관리"],
   onSiteClick,
   onMenuClick,
   onAuthClick,
   onMyPageClick,
 }: TopbarProps) {
+  const navigate = useNavigate();
+
+  const handleAuthClick = () => {
+    if (onAuthClick) {
+      onAuthClick();
+      return;
+    }
+    navigate("/login");
+  };
+
   return (
     <Bar>
       <LeftSection>
@@ -86,7 +101,7 @@ export default function Topbar({
       </CenterSection>
 
       <RightSection>
-        <ActionButton type="button" onClick={onAuthClick}>
+        <ActionButton type="button" onClick={handleAuthClick}>
           {isLoggedIn ? "로그아웃" : "로그인"}
         </ActionButton>
         <ActionButton type="button" onClick={onMyPageClick}>
