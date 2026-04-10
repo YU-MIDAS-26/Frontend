@@ -1,6 +1,8 @@
-/*공통 디자인 모음*/
-
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type {
+  ComponentPropsWithoutRef,
+  InputHTMLAttributes,
+  ReactNode,
+} from "react";
 import styled from "styled-components";
 
 type ButtonProps = ComponentPropsWithoutRef<"button"> & {
@@ -17,6 +19,10 @@ type ChipProps = DivProps & {
 
 type CheckboxProps = ComponentPropsWithoutRef<"div"> & {
   checked?: boolean;
+};
+
+type TextFieldProps = InputHTMLAttributes<HTMLInputElement> & {
+  className?: string;
 };
 
 const Label14 = styled.span`
@@ -43,7 +49,6 @@ const Title16 = styled.span`
   word-wrap: break-word;
 `;
 
-/*1.버튼(기본)*/
 const ButtonMainRoot = styled.button`
   width: 100%;
   height: 100%;
@@ -65,7 +70,6 @@ export const ButtonMain = ({ children, ...rest }: ButtonProps) => {
   );
 };
 
-/*2.버튼 색 들어간거*/
 const ButtonSelectedRoot = styled.button`
   width: 100%;
   height: 100%;
@@ -87,7 +91,6 @@ export const ButtonSelected = ({ children, ...rest }: ButtonProps) => {
   );
 };
 
-/*3번 버튼(테두리선)*/
 const ButtonSubRoot = styled.button`
   width: 100%;
   height: 100%;
@@ -111,7 +114,6 @@ export const ButtonSub = ({ children, ...rest }: ButtonProps) => {
   );
 };
 
-/*4번 버튼(연한 색)*/
 const ButtonSub2Root = styled.button`
   width: 100%;
   height: 100%;
@@ -133,7 +135,6 @@ export const ButtonSub2 = ({ children, ...rest }: ButtonProps) => {
   );
 };
 
-/*5, 6번 칩*/
 const ChipRoot = styled.div<{ $isActive: boolean }>`
   width: 100%;
   height: 100%;
@@ -156,35 +157,40 @@ export const Chip = ({ children, isActive = false, ...rest }: ChipProps) => {
   );
 };
 
-/*7번 텍스트 필드*/
-const TextFieldText = styled.p`
-  flex: 1 1 0;
-  margin: 0;
-`;
-
 const TextFieldRoot = styled.div`
   width: 100%;
   height: 100%;
-  padding: 12px 77px 12px 16px;
+  padding: 12px 16px;
   background: #c8d7e1;
   border-radius: 8px;
   justify-content: flex-start;
   align-items: center;
-  gap: 10px;
   display: inline-flex;
 `;
 
-export const TextField = ({ children, ...rest }: DivProps) => {
+const TextFieldInput = styled.input`
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: black;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  outline: none;
+
+  &::placeholder {
+    color: #4f6270;
+  }
+`;
+
+export const TextField = ({ className, ...props }: TextFieldProps) => {
   return (
-    <TextFieldRoot {...rest}>
-      <TextFieldText>
-        <Label14>{children}</Label14>
-      </TextFieldText>
+    <TextFieldRoot className={className}>
+      <TextFieldInput {...props} />
     </TextFieldRoot>
   );
 };
 
-/*8번 팝업알림(버튼 하나)*/
 const AlertMessage = styled.div`
   align-self: stretch;
   min-height: 89px;
@@ -249,7 +255,6 @@ export const OneButtonAlert = ({
   );
 };
 
-/*9번 팝업알림(버튼 둘)*/
 const TwoButtonAlertCancel = styled.button`
   flex: 1 1 0;
   padding: 8px 16px;
@@ -334,24 +339,24 @@ export const TwoButtonAlert = ({
   );
 };
 
-/*10, 11번 체크박스*/
+const SquareRoot = styled.div`
+  width: 24px;
+  height: 24px;
+  position: relative;
+  overflow: hidden;
+`;
+
 const SquareBox = styled.div<{ $checked: boolean }>`
   width: 16px;
   height: 16px;
   left: 4px;
   top: 4px;
   position: absolute;
-  border-radius: 4px;
-  border: ${({ $checked }) => ($checked ? "none" : "1px #dedede solid")};
   background: ${({ $checked }) => ($checked ? "#7ea0b7" : "transparent")};
   overflow: hidden;
-`;
-
-const SquareRoot = styled.div`
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
+  border-radius: 4px;
+  border: ${({ $checked }) => ($checked ? "none" : "1px #dedede solid")};
+  box-sizing: border-box;
 `;
 
 const CheckVector = styled.div`
@@ -360,14 +365,18 @@ const CheckVector = styled.div`
   left: 4px;
   top: 5.5px;
   position: absolute;
-  outline: 2px white solid;
-  outline-offset: -1px;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(-45deg);
+  box-sizing: border-box;
 `;
 
 export const Checkbox = ({ checked = false, ...props }: CheckboxProps) => {
   return (
     <SquareRoot {...props}>
-      <SquareBox $checked={checked}>{checked && <CheckVector />}</SquareBox>
+      <SquareBox $checked={checked}>
+        {checked && <CheckVector />}
+      </SquareBox>
     </SquareRoot>
   );
 };
