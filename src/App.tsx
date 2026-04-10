@@ -1,3 +1,4 @@
+import { Outlet, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Topbar from "./components/Topbar";
 
@@ -7,20 +8,21 @@ const Page = styled.div`
 `;
 
 const Content = styled.main`
-  padding: 20px;
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  text-align: center;
+  flex: 1;
 `;
 
 function App() {
+  const navigate = useNavigate();
+
   return (
     <Page>
-      <Topbar isLoggedIn={false} />
+      <Topbar
+        isLoggedIn={false}
+        onSiteClick={() => navigate("/")}
+        onAuthClick={() => navigate("/login")}
+      />
       <Content>
-        <Title>Midas 2026 Frontend</Title>
+        <Outlet />
       </Content>
     </Page>
   );
