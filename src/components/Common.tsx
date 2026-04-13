@@ -62,6 +62,7 @@ const ButtonMainRoot = styled.button`
   display: inline-flex;
 `;
 
+/*1번 버튼*/
 export const ButtonMain = ({ children, ...rest }: ButtonProps) => {
   return (
     <ButtonMainRoot type="button" {...rest}>
@@ -82,7 +83,7 @@ const ButtonSelectedRoot = styled.button`
   gap: 10px;
   display: inline-flex;
 `;
-
+/*2번 버튼*/
 export const ButtonSelected = ({ children, ...rest }: ButtonProps) => {
   return (
     <ButtonSelectedRoot type="button" {...rest}>
@@ -105,7 +106,7 @@ const ButtonSubRoot = styled.button`
   gap: 10px;
   display: inline-flex;
 `;
-
+/*3번 버튼*/
 export const ButtonSub = ({ children, ...rest }: ButtonProps) => {
   return (
     <ButtonSubRoot type="button" {...rest}>
@@ -126,8 +127,32 @@ const ButtonSub2Root = styled.button`
   gap: 10px;
   display: inline-flex;
 `;
-
+/*4번 버튼*/
 export const ButtonSub2 = ({ children, ...rest }: ButtonProps) => {
+  return (
+    <ButtonSub2Root type="button" {...rest}>
+      <Label14White>{children}</Label14White>
+    </ButtonSub2Root>
+  );
+};
+/*1,4버튼*/
+type SubmitButtonProps = ButtonProps & {
+  isActive?: boolean;
+};
+
+export const SubmitButton = ({
+  children,
+  isActive = false,
+  ...rest
+}: SubmitButtonProps) => {
+  if (isActive) {
+    return (
+      <ButtonSelectedRoot type="button" {...rest}>
+        <Label14>{children}</Label14>
+      </ButtonSelectedRoot>
+    );
+  }
+
   return (
     <ButtonSub2Root type="button" {...rest}>
       <Label14White>{children}</Label14White>
@@ -148,7 +173,7 @@ const ChipRoot = styled.div<{ $isActive: boolean }>`
   gap: 10px;
   display: inline-flex;
 `;
-
+/*5, 6번 칩*/
 export const Chip = ({ children, isActive = false, ...rest }: ChipProps) => {
   return (
     <ChipRoot $isActive={isActive} {...rest}>
@@ -182,7 +207,7 @@ const TextFieldInput = styled.input`
     color: #4f6270;
   }
 `;
-
+/*7번 텍스트필드*/
 export const TextField = ({ className, ...props }: TextFieldProps) => {
   return (
     <TextFieldRoot className={className}>
@@ -227,7 +252,7 @@ const OneButtonAlertRoot = styled.div`
   gap: 24px;
   display: inline-flex;
 `;
-
+/*8번 팝업창*/
 type OneButtonAlertProps = ComponentPropsWithoutRef<"div"> & {
   title: ReactNode;
   description: ReactNode;
@@ -302,7 +327,7 @@ const TwoButtonAlertRoot = styled.div`
   gap: 24px;
   display: inline-flex;
 `;
-
+/*9번 팝업창*/
 type TwoButtonAlertProps = ComponentPropsWithoutRef<"div"> & {
   title: ReactNode;
   description: ReactNode;
@@ -370,13 +395,11 @@ const CheckVector = styled.div`
   transform: rotate(-45deg);
   box-sizing: border-box;
 `;
-
+/*10, 11 채크박스*/
 export const Checkbox = ({ checked = false, ...props }: CheckboxProps) => {
   return (
     <SquareRoot {...props}>
-      <SquareBox $checked={checked}>
-        {checked && <CheckVector />}
-      </SquareBox>
+      <SquareBox $checked={checked}>{checked && <CheckVector />}</SquareBox>
     </SquareRoot>
   );
 };

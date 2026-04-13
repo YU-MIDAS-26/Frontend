@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import styled from "styled-components";
 import { ButtonSelected, Checkbox, TextField } from "../components/Common";
 import { useLoginMutation } from "../api/login_api";
+import { useNavigate } from "react-router-dom";
 
 const Page = styled.main`
   min-height: calc(100vh - 70px);
@@ -115,6 +116,8 @@ function Login() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
+  const navigate = useNavigate();
+
   const loginMutation = useLoginMutation();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -130,7 +133,7 @@ function Login() {
   return (
     <Page>
       <Card>
-        <Title>{"\uB85C\uADF8\uC778"}</Title>
+        <Title>{"로그인"}</Title>
 
         <Form onSubmit={handleSubmit}>
           <FieldGroup>
@@ -178,7 +181,9 @@ function Login() {
           )}
 
           <FooterLinks>
-            <FooterButton type="button">{"회원가입"}</FooterButton>
+            <FooterButton type="button" onClick={() => navigate("/register")}>
+              {"회원가입"}
+            </FooterButton>
             <FooterButton type="button">{"아이디 찾기"}</FooterButton>
             <FooterButton type="button">{"비밀번호 찾기"}</FooterButton>
           </FooterLinks>

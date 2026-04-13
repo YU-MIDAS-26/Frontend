@@ -12,18 +12,18 @@ const Canvas = styled.div`
   width: 1440px;
   max-width: 1440px;
   min-width: 1440px;
-  height: 1024px;
-  max-height: 1024px;
   min-height: 1024px;
   margin: 0 auto;
   background: #f5f7f9;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 `;
 
 const Content = styled.main`
-  height: calc(1024px - 70px);
   min-height: calc(1024px - 70px);
-  max-height: calc(1024px - 70px);
-  overflow: auto;
+  flex: 1;
+  overflow: visible;
 `;
 
 function App() {
