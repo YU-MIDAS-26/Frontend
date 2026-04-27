@@ -13,14 +13,15 @@ type TopbarProps = {
 
 const Bar = styled.header`
   width: 100%;
-  height: 70px;
+  min-height: 70px;
   background: #7ea0b7;
-  padding: 0 20px;
+  padding: 12px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   box-sizing: border-box;
+  flex-wrap: wrap;
 `;
 
 const Section = styled.div`
@@ -37,11 +38,13 @@ const LeftSection = styled(Section)`
 const CenterSection = styled(Section)`
   justify-content: center;
   gap: 36px;
+  flex-wrap: wrap;
 `;
 
 const RightSection = styled(Section)`
   justify-content: flex-end;
   gap: 16px;
+  flex-wrap: wrap;
 `;
 
 const ActionButton = styled.button`
@@ -59,6 +62,28 @@ const ActionButton = styled.button`
 const LogoButton = styled(ActionButton)`
   font-weight: 700;
   letter-spacing: 0.2px;
+`;
+
+const ResponsiveLeftSection = styled(LeftSection)`
+  @media (max-width: 768px) {
+    justify-content: center;
+    flex-basis: 100%;
+  }
+`;
+
+const ResponsiveCenterSection = styled(CenterSection)`
+  @media (max-width: 768px) {
+    justify-content: center;
+    gap: 18px;
+    flex-basis: 100%;
+  }
+`;
+
+const ResponsiveRightSection = styled(RightSection)`
+  @media (max-width: 768px) {
+    justify-content: center;
+    flex-basis: 100%;
+  }
 `;
 
 export default function Topbar({
@@ -82,13 +107,13 @@ export default function Topbar({
 
   return (
     <Bar>
-      <LeftSection>
+      <ResponsiveLeftSection>
         <LogoButton type="button" onClick={onSiteClick}>
           {siteName}
         </LogoButton>
-      </LeftSection>
+      </ResponsiveLeftSection>
 
-      <CenterSection>
+      <ResponsiveCenterSection>
         {menus.map((menu) => (
           <ActionButton
             key={menu}
@@ -98,16 +123,16 @@ export default function Topbar({
             {menu}
           </ActionButton>
         ))}
-      </CenterSection>
+      </ResponsiveCenterSection>
 
-      <RightSection>
+      <ResponsiveRightSection>
         <ActionButton type="button" onClick={handleAuthClick}>
           {isLoggedIn ? "로그아웃" : "로그인"}
         </ActionButton>
         <ActionButton type="button" onClick={onMyPageClick}>
           {isLoggedIn ? "마이페이지" : " "}
         </ActionButton>
-      </RightSection>
+      </ResponsiveRightSection>
     </Bar>
   );
 }

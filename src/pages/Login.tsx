@@ -123,11 +123,30 @@ function Login() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    await loginMutation.mutateAsync({
-      studentId,
-      password,
-      rememberMe,
-    });
+    if (studentId.length < 6) {
+      alert("아이디는 6자 이상 입력해야 합니다.");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("비밀번호는 6자 이상 입력해야 합니다.");
+      return;
+    }
+
+    try {
+      await loginMutation.mutateAsync({
+        studentId,
+        password,
+        rememberMe,
+      });
+
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("userId", studentId);
+
+      navigate("/");
+    } catch {
+      // 에러 메시지는 loginMutation.isError 쪽에서 이미 보여줌
+    }
   };
 
   return (

@@ -176,7 +176,7 @@ const RegisterStepTwo = () => {
 
           <S.DateWrapper>
             <S.FormTextField
-              type="text"
+              type={formData.openingDate ? "date" : "text"}
               placeholder="개업일"
               onFocus={(e) => (e.target.type = "date")}
               onBlur={(e) => {

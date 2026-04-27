@@ -3,7 +3,7 @@ import { ButtonSelected, SubmitButton, TextField } from "../components/Common";
 
 export const Page = styled.main`
   min-height: calc(100vh - 70px);
-  padding: 40px 20px;
+  padding: clamp(24px, 4vw, 40px) clamp(16px, 3vw, 24px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,21 +11,20 @@ export const Page = styled.main`
 `;
 
 export const Card = styled.section`
-  width: 540px;
-  max-width: min(100%, 540px);
-  padding: 50px 60px;
+  width: min(100%, 36rem);
+  padding: clamp(32px, 4vw, 50px) clamp(20px, 4.5vw, 60px);
   border-radius: 8px;
   outline: 3px #7ea0b7 solid;
   outline-offset: -3px;
   background: white;
   display: flex;
   flex-direction: column;
-  gap: 62px;
+  gap: clamp(36px, 5vw, 62px);
   box-sizing: border-box;
 
   @media (max-width: 640px) {
     width: 100%;
-    padding: 40px 24px;
+    padding: 32px 20px;
   }
 `;
 
@@ -42,7 +41,7 @@ export const Title = styled.h1`
 export const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: clamp(18px, 2.4vw, 25px);
 `;
 
 export const StepTitle = styled.h2`
@@ -55,8 +54,9 @@ export const StepTitle = styled.h2`
 
 export const Row = styled.div`
   display: flex;
-  gap: 25px;
+  gap: clamp(12px, 2vw, 25px);
   align-items: flex-start;
+  width: 100%;
 
   @media (max-width: 640px) {
     flex-direction: column;
@@ -109,7 +109,7 @@ export const SelectField = styled.select`
 `;
 
 export const AddressButton = styled(ButtonSelected)`
-  width: 95px;
+  width: clamp(88px, 18vw, 108px);
   height: 48px;
   flex-shrink: 0;
 
@@ -120,7 +120,7 @@ export const AddressButton = styled(ButtonSelected)`
 
 export const NextButton = styled(SubmitButton)`
   height: 40px;
-  margin-top: 37px;
+  margin-top: clamp(24px, 4vw, 37px);
 
   &:disabled {
     cursor: not-allowed;
@@ -202,7 +202,7 @@ export const FileUploadButton = styled.label`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 95px;
+  min-width: clamp(88px, 18vw, 108px);
   height: 40px;
   padding: 8px 16px;
   border-radius: 12px;

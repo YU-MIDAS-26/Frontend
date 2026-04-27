@@ -3,17 +3,15 @@ import styled from "styled-components";
 import Topbar from "./components/Topbar";
 
 const Page = styled.div`
+  width: 100%;
   min-height: 100vh;
   background: #f5f7f9;
-  overflow: auto;
+  overflow-x: hidden;
 `;
 
 const Canvas = styled.div`
-  width: 1440px;
-  max-width: 1440px;
-  min-width: 1440px;
-  min-height: 1024px;
-  margin: 0 auto;
+  width: 100%;
+  min-height: 100vh;
   background: #f5f7f9;
   position: relative;
   display: flex;
@@ -21,16 +19,27 @@ const Canvas = styled.div`
 `;
 
 const Content = styled.main`
-  min-height: calc(1024px - 70px);
+  min-height: calc(100vh - 70px);
   flex: 1;
   overflow: visible;
 `;
 
 function App() {
   const navigate = useNavigate();
+  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
   const handleMenuClick = (menu: string) => {
     if (menu === "매출 확인") {
       navigate("/sales-check");
+    }
+  };
+
+  const handleAuthClick = () => {
+    if (isLoggedIn) {
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("userId");
+      navigate("/");
+    } else {
+      navigate("/login");
     }
   };
 
@@ -38,10 +47,11 @@ function App() {
     <Page>
       <Canvas>
         <Topbar
-          isLoggedIn={false}
+          isLoggedIn={isLoggedIn}
           onSiteClick={() => navigate("/")}
           onMenuClick={handleMenuClick}
-          onAuthClick={() => navigate("/login")}
+          onAuthClick={handleAuthClick}
+          onMyPageClick={() => navigate("/mypage")}
         />
         <Content>
           <Outlet />
