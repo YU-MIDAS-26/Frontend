@@ -3,7 +3,7 @@ import { ButtonSelected, SubmitButton, TextField } from "../components/Common";
 
 export const Page = styled.main`
   min-height: calc(100vh - 70px);
-  padding: 40px 20px;
+  padding: clamp(24px, 4vw, 40px) clamp(16px, 3vw, 24px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,21 +11,20 @@ export const Page = styled.main`
 `;
 
 export const Card = styled.section`
-  width: 540px;
-  max-width: min(100%, 540px);
-  padding: 50px 60px;
+  width: min(100%, 36rem);
+  padding: clamp(32px, 4vw, 50px) clamp(20px, 4.5vw, 60px);
   border-radius: 8px;
   outline: 3px #7ea0b7 solid;
   outline-offset: -3px;
   background: white;
   display: flex;
   flex-direction: column;
-  gap: 62px;
+  gap: clamp(36px, 5vw, 62px);
   box-sizing: border-box;
 
   @media (max-width: 640px) {
     width: 100%;
-    padding: 40px 24px;
+    padding: 32px 20px;
   }
 `;
 
@@ -47,13 +46,13 @@ export const Title = styled.h1`
 export const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 62px;
+  gap: clamp(36px, 5vw, 62px);
 `;
 
 export const Fields = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: clamp(18px, 2.4vw, 25px);
 `;
 
 export const StepText = styled.p`
@@ -65,8 +64,9 @@ export const StepText = styled.p`
 
 export const Row = styled.div`
   display: flex;
-  gap: 25px;
+  gap: clamp(12px, 2vw, 25px);
   align-items: flex-start;
+  width: 100%;
 
   @media (max-width: 640px) {
     flex-direction: column;
@@ -85,7 +85,9 @@ export const FieldWrapper = styled.div<{ $disabled?: boolean }>`
 `;
 
 export const HalfFieldWrapper = styled(FieldWrapper)`
-  width: 300px;
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
 
   @media (max-width: 640px) {
     width: 100%;
@@ -139,7 +141,7 @@ export const CalendarIcon = styled.span`
 `;
 
 export const ActionButton = styled(ButtonSelected)`
-  width: 95px;
+  width: clamp(88px, 18vw, 108px);
   height: 40px;
   flex-shrink: 0;
 
@@ -202,6 +204,6 @@ export const Message = styled.p<{ $tone: "default" | "error" | "success" }>`
 `;
 
 export const FooterMessage = styled(Message)`
-  margin: -46px 0 0;
+  margin: -32px 0 0;
   text-align: center;
 `;

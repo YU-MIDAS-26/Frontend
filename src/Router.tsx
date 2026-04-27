@@ -8,6 +8,8 @@ import Register from "./pages/Register";
 import RegisterComplete from "./pages/RegisterComplete";
 import RegisterStepTwo from "./pages/RegisterStepTwo";
 
+import Mypage from "./pages/mypage/Mypage";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -32,6 +34,8 @@ const router = createBrowserRouter([
       { path: "/register", element: <Register /> },
       { path: "/register2", element: <RegisterStepTwo /> },
       { path: "/register-complete", element: <RegisterComplete /> },
+
+      { path: "/mypage", element: <Mypage /> },
     ],
   },
 ]);

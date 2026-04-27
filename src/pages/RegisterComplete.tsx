@@ -6,15 +6,15 @@ const Page = styled.main`
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 100px); /* 헤더 제외 중앙 정렬 */
-  padding: 40px 20px;
+  min-height: calc(100vh - 70px); /* 헤더 제외 중앙 정렬 */
+  padding: clamp(24px, 4vw, 40px) clamp(16px, 3vw, 24px);
   background-color: #f5f7f9;
 `;
 
 const Card = styled.section`
   width: 100%;
-  max-width: 540px;
-  padding: 80px 60px;
+  max-width: 36rem;
+  padding: clamp(48px, 6vw, 80px) clamp(20px, 4.5vw, 60px);
   border-radius: 8px;
   background: white;
   /* 피그마 수치 반영 */
@@ -24,11 +24,11 @@ const Card = styled.section`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 62px;
+  gap: clamp(36px, 5vw, 62px);
   box-sizing: border-box;
 
   @media (max-width: 640px) {
-    padding: 60px 24px;
+    padding: 44px 20px;
     gap: 40px;
   }
 `;
