@@ -102,7 +102,12 @@ function MypagePrivacy() {
             </S.TextGroup>
 
             <S.FixedButtonBox>
-              <ButtonSub2 type="button">변경하기</ButtonSub2>
+              <ButtonSub2
+                type="button"
+                onClick={() => navigate("/password-reset")}
+              >
+                변경하기
+              </ButtonSub2>
             </S.FixedButtonBox>
           </S.InfoRow>
         </S.InfoList>

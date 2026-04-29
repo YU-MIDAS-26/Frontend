@@ -204,7 +204,12 @@ function Login() {
               {"회원가입"}
             </FooterButton>
             <FooterButton type="button">{"아이디 찾기"}</FooterButton>
-            <FooterButton type="button">{"비밀번호 찾기"}</FooterButton>
+            <FooterButton
+              type="button"
+              onClick={() => navigate("/password-find")}
+            >
+              비밀번호 찾기
+            </FooterButton>
           </FooterLinks>
         </Form>
       </Card>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import MypagePrivacy from "./MypagePrivacy";
+import MypageAdmin from "./MypageAdmin";
 import * as S from "../../style/MypagePrivacy.style";
 
 type MypageTab = "privacy" | "basic" | "admin";
@@ -45,11 +46,7 @@ function Mypage() {
             </S.EmptyContent>
           )}
 
-          {selectedTab === "admin" && (
-            <S.EmptyContent>
-              관리자 페이지 화면은 추후 구현 예정입니다.
-            </S.EmptyContent>
-          )}
+          {selectedTab === "admin" && <MypageAdmin />}
         </S.ContentArea>
       </S.Inner>
     </S.Page>

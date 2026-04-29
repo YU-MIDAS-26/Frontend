@@ -10,6 +10,9 @@ import RegisterStepTwo from "./pages/RegisterStepTwo";
 
 import Mypage from "./pages/mypage/Mypage";
 
+import PasswardFind from "./pages/PasswardFind";
+import PasswardReset from "./pages/PasswardReset";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -36,6 +39,14 @@ const router = createBrowserRouter([
       { path: "/register-complete", element: <RegisterComplete /> },
 
       { path: "/mypage", element: <Mypage /> },
+      {
+        path: "/password-find",
+        element: <PasswardFind />,
+      },
+      {
+        path: "/password-reset",
+        element: <PasswardReset />,
+      },
     ],
   },
 ]);
