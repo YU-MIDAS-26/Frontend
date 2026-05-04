@@ -13,6 +13,8 @@ import Mypage from "./pages/mypage/Mypage";
 import PasswardFind from "./pages/PasswardFind";
 import PasswardReset from "./pages/PasswardReset";
 
+import EmployeeManage from "./pages/EmployeeManage/EmployeeManage";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -46,6 +48,10 @@ const router = createBrowserRouter([
       {
         path: "/password-reset",
         element: <PasswardReset />,
+      },
+      {
+        path: "/employee-manage",
+        element: <EmployeeManage />,
       },
     ],
   },
