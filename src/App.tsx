@@ -28,8 +28,14 @@ function App() {
   const navigate = useNavigate();
   const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
   const handleMenuClick = (menu: string) => {
+    if (menu === "재료 등록") {
+      navigate("/ingredients");
+    }
     if (menu === "매출 확인") {
       navigate("/sales-check");
+    }
+    if (menu === "AI 챗봇") {
+      navigate("/ai-chat");
     }
   };
 
@@ -48,6 +54,7 @@ function App() {
       <Canvas>
         <Topbar
           isLoggedIn={isLoggedIn}
+          menus={["재료 등록", "매출 확인", "AI 챗봇"]}
           onSiteClick={() => navigate("/")}
           onMenuClick={handleMenuClick}
           onAuthClick={handleAuthClick}
