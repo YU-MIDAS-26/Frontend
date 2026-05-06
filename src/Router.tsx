@@ -14,7 +14,8 @@ import PasswardFind from "./pages/PasswardFind";
 import PasswardReset from "./pages/PasswardReset";
 
 import EmployeeManage from "./pages/EmployeeManage/EmployeeManage";
-
+import IngredientPage from "./pages/IngredientPage";
+import AiChatPage from "./pages/AiChatPage";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -52,6 +53,14 @@ const router = createBrowserRouter([
       {
         path: "/employee-manage",
         element: <EmployeeManage />,
+      },
+      {
+        path: "/ingredients",
+        element: <IngredientPage />,
+      },
+      {
+        path: "/ai-chat",
+        element: <AiChatPage />,
       },
     ],
   },
