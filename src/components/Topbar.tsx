@@ -4,14 +4,13 @@ import { useNavigate } from "react-router-dom";
 type TopbarProps = {
   isLoggedIn?: boolean;
   siteName?: string;
-  menus?: [string, string, string];
+  menus?: string[];
   onSiteClick?: () => void;
   onMenuClick?: (menu: string) => void;
   onLoginClick?: () => void;
   onSignupClick?: () => void;
   onLogoutClick?: () => void;
   onMyPageClick?: () => void;
-  onAuthClick: () => void;
 };
 
 const Bar = styled.header`
@@ -126,7 +125,7 @@ export default function Topbar({
       return;
     }
 
-    navigate("/signup");
+    navigate("/register");
   };
 
   const handleMyPageClick = () => {

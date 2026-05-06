@@ -141,9 +141,14 @@ export const CalendarIcon = styled.span`
 `;
 
 export const ActionButton = styled(ButtonSelected)`
-  width: clamp(88px, 18vw, 108px);
-  height: 40px;
+  width: clamp(96px, 18vw, 112px);
+  min-height: 40px;
+  height: auto;
+  padding: 8px 12px;
   flex-shrink: 0;
+  white-space: normal;
+  word-break: keep-all;
+  text-align: center;
 
   &:disabled {
     cursor: not-allowed;
