@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import styled from "styled-components";
 import { ButtonSelected, Checkbox, TextField } from "../components/Common";
 import { useLoginMutation } from "../api/login_api";
+import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const Page = styled.main`
@@ -117,6 +118,7 @@ function Login() {
   const [rememberMe, setRememberMe] = useState(false);
 
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const loginMutation = useLoginMutation();
 
@@ -140,8 +142,9 @@ function Login() {
         rememberMe,
       });
 
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("userId", studentId);
+      // TODO: 백엔드 연동 시 여기서는 로그인 API 응답값만 넘기고,
+      // 실제 세션 저장은 AuthContext에서 처리하도록 유지하면 됩니다.
+      login(studentId);
 
       navigate("/");
     } catch {

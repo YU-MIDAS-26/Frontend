@@ -1,6 +1,7 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Topbar from "./components/Topbar";
+import { useAuth } from "./contexts/AuthContext";
 
 const Page = styled.div`
   width: 100%;
@@ -26,7 +27,7 @@ const Content = styled.main`
 
 function App() {
   const navigate = useNavigate();
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+  const { isLoggedIn, logout } = useAuth();
   const handleMenuClick = (menu: string) => {
     if (menu === "재료 등록") {
       navigate("/ingredients");
@@ -34,19 +35,21 @@ function App() {
     if (menu === "매출 확인") {
       navigate("/sales-check");
     }
+    if (menu === "직원 관리") {
+      navigate("/employee-manage");
+    }
     if (menu === "AI 챗봇") {
       navigate("/ai-chat");
     }
   };
 
-  const handleAuthClick = () => {
-    if (isLoggedIn) {
-      localStorage.removeItem("isLoggedIn");
-      localStorage.removeItem("userId");
-      navigate("/");
-    } else {
-      navigate("/login");
+  const handleLogoutClick = () => {
+    if (!isLoggedIn) {
+      return;
     }
+
+    logout();
+    navigate("/");
   };
 
   return (
@@ -54,10 +57,10 @@ function App() {
       <Canvas>
         <Topbar
           isLoggedIn={isLoggedIn}
-          menus={["재료 등록", "매출 확인", "AI 챗봇"]}
+          menus={["재료 등록", "매출 확인", "직원 관리", "AI 챗봇"]}
           onSiteClick={() => navigate("/")}
           onMenuClick={handleMenuClick}
-          onAuthClick={handleAuthClick}
+          onLogoutClick={handleLogoutClick}
           onMyPageClick={() => navigate("/mypage")}
         />
         <Content>

@@ -5,10 +5,12 @@ import {
   OneButtonAlert,
   TwoButtonAlert,
 } from "../../components/Common";
+import { useAuth } from "../../contexts/AuthContext";
 import * as S from "../../style/MypagePrivacy.style";
 
 function MypagePrivacy() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const [phoneNumber, setPhoneNumber] = useState("010-1234-5678");
   const [isEditingPhone, setIsEditingPhone] = useState(false);
@@ -33,11 +35,10 @@ function MypagePrivacy() {
   };
 
   const handleDeleteComplete = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("userId");
-
+    // TODO: 백엔드 연동 시 회원 탈퇴 완료 후 서버 세션 정리까지 포함해서
+    // logout()을 호출하도록 이어 붙이면 됩니다.
+    logout();
     navigate("/");
-    window.location.reload();
   };
 
   return (
