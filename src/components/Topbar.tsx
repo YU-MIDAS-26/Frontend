@@ -18,16 +18,18 @@ const Bar = styled.header`
   min-height: 70px;
   background: #7ea0b7;
   padding: 12px 20px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   box-sizing: border-box;
-  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Section = styled.div`
-  flex: 1;
   display: flex;
   align-items: center;
   min-width: 0;
@@ -69,7 +71,7 @@ const LogoButton = styled(ActionButton)`
 const ResponsiveLeftSection = styled(LeftSection)`
   @media (max-width: 768px) {
     justify-content: center;
-    flex-basis: 100%;
+    width: 100%;
   }
 `;
 
@@ -77,14 +79,14 @@ const ResponsiveCenterSection = styled(CenterSection)`
   @media (max-width: 768px) {
     justify-content: center;
     gap: 18px;
-    flex-basis: 100%;
+    width: 100%;
   }
 `;
 
 const ResponsiveRightSection = styled(RightSection)`
   @media (max-width: 768px) {
     justify-content: center;
-    flex-basis: 100%;
+    width: 100%;
   }
 `;
 
