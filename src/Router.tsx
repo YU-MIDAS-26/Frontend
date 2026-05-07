@@ -3,6 +3,7 @@ import App from "./App";
 import Home from "./Home";
 import Login from "./pages/Login";
 import ReportPage from "./pages/ReportPage";
+import SalesCheckPage from "./pages/SalesCheckPage";
 import SalesForecastPage from "./pages/SalesForecastPage";
 import Register from "./pages/Register";
 import RegisterComplete from "./pages/RegisterComplete";
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
       },
       {
         path: "/sales-check",
+        element: <SalesCheckPage />,
+      },
+      {
+        path: "/sales-input",
         element: <SalesForecastPage />,
       },
       {
