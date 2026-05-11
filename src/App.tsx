@@ -35,6 +35,9 @@ function App() {
     if (menu === "매출 관리") {
       navigate("/sales-check");
     }
+    if (menu === "매출입력") {
+      navigate("/sales-input");
+    }
     if (menu === "직원 관리") {
       navigate("/employee-manage");
     }
@@ -57,7 +60,11 @@ function App() {
       <Canvas>
         <Topbar
           isLoggedIn={isLoggedIn}
+<<<<<<< HEAD
           menus={["재료 등록", "매출 관리", "직원 관리", "AI 챗봇"]}
+=======
+          menus={["재료 등록", "매출 확인", "매출입력", "직원 관리", "AI 챗봇"]}
+>>>>>>> origin/main
           onSiteClick={() => navigate("/")}
           onMenuClick={handleMenuClick}
           onLogoutClick={handleLogoutClick}
