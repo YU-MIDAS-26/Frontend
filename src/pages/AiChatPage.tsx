@@ -9,7 +9,7 @@ type Message = {
 
 const Page = styled.main`
   min-height: calc(100vh - 70px);
-  background: #dfe1e5;
+  background: var(--app-page-bg);
   padding: 24px;
 `;
 

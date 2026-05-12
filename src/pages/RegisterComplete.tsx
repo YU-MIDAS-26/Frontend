@@ -8,7 +8,7 @@ const Page = styled.main`
   align-items: center;
   min-height: calc(100vh - 70px); /* 헤더 제외 중앙 정렬 */
   padding: clamp(24px, 4vw, 40px) clamp(16px, 3vw, 24px);
-  background-color: #f5f7f9;
+  background-color: var(--app-page-bg);
 `;
 
 const Card = styled.section`
