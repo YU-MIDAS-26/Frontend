@@ -6,7 +6,7 @@ import { SubmitButton, TextField } from "../components/Common";
 
 const Page = styled.main`
   min-height: calc(1024px - 70px);
-  background: white;
+  background: var(--app-page-bg);
   display: flex;
   justify-content: center;
   align-items: center;
