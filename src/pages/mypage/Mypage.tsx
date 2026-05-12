@@ -1,5 +1,5 @@
 import { useState } from "react";
-import MypagePrivacy from "./MypagePrivacy";
+import MypageProfileView from "./MypageProfileView";
 import MypageAdmin from "./MypageAdmin";
 import * as S from "../../style/MypagePrivacy.style";
 
@@ -38,7 +38,14 @@ function Mypage() {
         </S.SideMenu>
 
         <S.ContentArea>
-          {selectedTab === "privacy" && <MypagePrivacy />}
+          <S.PageHeader>
+            <S.PageTitle>마이페이지</S.PageTitle>
+            <S.PageDescription>
+              계정 정보와 관리자 기능을 한 곳에서 확인하고 관리할 수 있습니다.
+            </S.PageDescription>
+          </S.PageHeader>
+
+          {selectedTab === "privacy" && <MypageProfileView />}
 
           {selectedTab === "basic" && (
             <S.EmptyContent>

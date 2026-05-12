@@ -7,7 +7,7 @@ export const Page = styled.main`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f7f9;
+  background: var(--app-page-bg);
 `;
 
 export const Card = styled.section`

@@ -6,23 +6,30 @@ import { useAuth } from "./contexts/AuthContext";
 const Page = styled.div`
   width: 100%;
   min-height: 100vh;
-  background: #f5f7f9;
+  background: var(--app-page-bg);
   overflow-x: hidden;
 `;
 
 const Canvas = styled.div`
   width: 100%;
   min-height: 100vh;
-  background: #f5f7f9;
+  background: var(--app-page-bg);
   position: relative;
   display: flex;
   flex-direction: column;
 `;
 
 const Content = styled.main`
+  width: 100%;
   min-height: calc(100vh - 70px);
   flex: 1;
   overflow: visible;
+  padding-inline: var(--app-gutter);
+
+  & > * {
+    width: min(100%, var(--app-max-width));
+    margin-inline: auto;
+  }
 `;
 
 function App() {
