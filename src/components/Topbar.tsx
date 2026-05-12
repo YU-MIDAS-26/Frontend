@@ -17,7 +17,15 @@ const Bar = styled.header`
   width: 100%;
   min-height: 70px;
   background: #7ea0b7;
-  padding: 12px 20px;
+  padding-inline: var(--app-gutter);
+  box-sizing: border-box;
+`;
+
+const BarInner = styled.div`
+  width: min(100%, var(--app-max-width));
+  min-height: 70px;
+  margin: 0 auto;
+  padding: 12px 0;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -145,13 +153,14 @@ export default function Topbar({
 
   return (
     <Bar>
-      <ResponsiveLeftSection>
+      <BarInner>
+        <ResponsiveLeftSection>
         <LogoButton type="button" onClick={onSiteClick}>
           {siteName}
         </LogoButton>
-      </ResponsiveLeftSection>
+        </ResponsiveLeftSection>
 
-      <ResponsiveCenterSection>
+        <ResponsiveCenterSection>
         {menus.map((menu) => (
           <ActionButton
             key={menu}
@@ -161,9 +170,9 @@ export default function Topbar({
             {menu}
           </ActionButton>
         ))}
-      </ResponsiveCenterSection>
+        </ResponsiveCenterSection>
 
-      <ResponsiveRightSection>
+        <ResponsiveRightSection>
         {isLoggedIn ? (
           <>
             <ActionButton type="button" onClick={handleMyPageClick}>
@@ -183,7 +192,8 @@ export default function Topbar({
             </ActionButton>
           </>
         )}
-      </ResponsiveRightSection>
+        </ResponsiveRightSection>
+      </BarInner>
     </Bar>
   );
 }
