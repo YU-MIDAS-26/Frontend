@@ -1,6 +1,7 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Topbar from "./components/Topbar";
+import FloatingChatBot from "./components/FloatingChatBot";
 
 const Page = styled.div`
   width: 100%;
@@ -34,9 +35,6 @@ function App() {
     if (menu === "매출 확인") {
       navigate("/sales-check");
     }
-    if (menu === "AI 챗봇") {
-      navigate("/ai-chat");
-    }
   };
 
   const handleAuthClick = () => {
@@ -54,7 +52,7 @@ function App() {
       <Canvas>
         <Topbar
           isLoggedIn={isLoggedIn}
-          menus={["재료 등록", "매출 확인", "AI 챗봇"]}
+          menus={["재료 등록", "매출 확인"]}
           onSiteClick={() => navigate("/")}
           onMenuClick={handleMenuClick}
           onAuthClick={handleAuthClick}
@@ -63,6 +61,10 @@ function App() {
         <Content>
           <Outlet />
         </Content>
+
+        
+
+        <FloatingChatBot />
       </Canvas>
     </Page>
   );
