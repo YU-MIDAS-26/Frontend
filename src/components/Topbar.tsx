@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 type TopbarProps = {
   isLoggedIn?: boolean;
   siteName?: string;
-  menus?: [string, string, string];
+  menus?: string[];
   onSiteClick?: () => void;
   onMenuClick?: (menu: string) => void;
   onLoginClick?: () => void;
@@ -18,17 +18,27 @@ const Bar = styled.header`
   width: 100%;
   min-height: 70px;
   background: #7ea0b7;
-  padding: 12px 20px;
-  display: flex;
+  padding-inline: var(--app-gutter);
+  box-sizing: border-box;
+`;
+
+const BarInner = styled.div`
+  width: min(100%, var(--app-max-width));
+  min-height: 70px;
+  margin: 0 auto;
+  padding: 12px 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   box-sizing: border-box;
-  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Section = styled.div`
-  flex: 1;
   display: flex;
   align-items: center;
   min-width: 0;
@@ -70,7 +80,7 @@ const LogoButton = styled(ActionButton)`
 const ResponsiveLeftSection = styled(LeftSection)`
   @media (max-width: 768px) {
     justify-content: center;
-    flex-basis: 100%;
+    width: 100%;
   }
 `;
 
@@ -78,14 +88,14 @@ const ResponsiveCenterSection = styled(CenterSection)`
   @media (max-width: 768px) {
     justify-content: center;
     gap: 18px;
-    flex-basis: 100%;
+    width: 100%;
   }
 `;
 
 const ResponsiveRightSection = styled(RightSection)`
   @media (max-width: 768px) {
     justify-content: center;
-    flex-basis: 100%;
+    width: 100%;
   }
 `;
 
@@ -126,7 +136,7 @@ export default function Topbar({
       return;
     }
 
-    navigate("/signup");
+    navigate("/register");
   };
 
   const handleMyPageClick = () => {
@@ -144,13 +154,14 @@ export default function Topbar({
 
   return (
     <Bar>
-      <ResponsiveLeftSection>
+      <BarInner>
+        <ResponsiveLeftSection>
         <LogoButton type="button" onClick={onSiteClick}>
           {siteName}
         </LogoButton>
-      </ResponsiveLeftSection>
+        </ResponsiveLeftSection>
 
-      <ResponsiveCenterSection>
+        <ResponsiveCenterSection>
         {menus.map((menu) => (
           <ActionButton
             key={menu}
@@ -160,9 +171,9 @@ export default function Topbar({
             {menu}
           </ActionButton>
         ))}
-      </ResponsiveCenterSection>
+        </ResponsiveCenterSection>
 
-      <ResponsiveRightSection>
+        <ResponsiveRightSection>
         {isLoggedIn ? (
           <>
             <ActionButton type="button" onClick={handleMyPageClick}>
@@ -182,7 +193,8 @@ export default function Topbar({
             </ActionButton>
           </>
         )}
-      </ResponsiveRightSection>
+        </ResponsiveRightSection>
+      </BarInner>
     </Bar>
   );
 }

@@ -2,14 +2,23 @@ import styled from "styled-components";
 import { TwoButtonAlert } from "../components/Common";
 
 export const Page = styled.section`
-  width: 620px;
+  width: 100%;
   min-height: 520px;
+  padding: 28px 32px;
+  border: 1px solid #d9e0e6;
+  border-radius: 18px;
+  background: #ffffff;
+  box-sizing: border-box;
+
+  @media (max-width: 640px) {
+    padding: 22px 20px;
+  }
 `;
 
 export const Title = styled.h2`
   margin: 0 0 20px;
   color: #111111;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   line-height: 32px;
 `;
@@ -35,6 +44,7 @@ export const ToolRow = styled.div`
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 `;
 
 export const LeftTools = styled.div`
@@ -43,7 +53,7 @@ export const LeftTools = styled.div`
 `;
 
 export const SearchBox = styled.div`
-  width: 180px;
+  width: min(100%, 260px);
   height: 40px;
 `;
 
@@ -51,6 +61,7 @@ export const RightTools = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 `;
 
 export const RoleLabel = styled.span`
@@ -101,9 +112,10 @@ export const DeleteButton = styled.button`
 export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   font-size: 14px;
+  table-layout: fixed;
 
   thead {
     background: #c8d7e1;
@@ -147,6 +159,7 @@ export const SelectedInfo = styled.p`
   color: #777777;
   font-size: 13px;
   line-height: 20px;
+  word-break: break-word;
 `;
 
 export const Pagination = styled.div`

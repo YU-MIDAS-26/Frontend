@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 export const Page = styled.main`
   min-height: calc(100vh - 70px);
-  background: #ffffff;
+  background: var(--app-page-bg);
   padding: 40px;
   box-sizing: border-box;
 `;

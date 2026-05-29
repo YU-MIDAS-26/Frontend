@@ -1,148 +1,216 @@
 import styled from "styled-components";
 
 export const Page = styled.main`
-  min-height: calc(1024px - 70px);
-  background: white;
-  padding: 0;
+  min-height: calc(100vh - 70px);
+  background: var(--app-page-bg);
+  padding: 40px;
   box-sizing: border-box;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
 `;
 
 export const Inner = styled.div`
-  width: 760px;
-  margin-top: 136px;
-
+  width: 100%;
+  max-width: 1104px;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: 100px 1fr;
-  column-gap: 76px;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 48px;
   align-items: start;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
 `;
 
 export const SideMenu = styled.nav`
-  width: 100px;
-  padding: 6px 4px;
-  border: 2px solid #7ea0b7;
+  position: sticky;
+  top: 40px;
+  padding: 24px 18px;
+  border: 1px solid #d9e0e6;
+  border-radius: 18px;
+  background: #ffffff;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
+
+  @media (max-width: 900px) {
+    position: static;
+  }
 `;
 
 export const SideMenuButton = styled.button<{ $active?: boolean }>`
   border: none;
-  background: transparent;
-  padding: 0;
+  background: ${({ $active }) => ($active ? "#e7f0f6" : "transparent")};
+  padding: 12px 14px;
+  border-radius: 12px;
   text-align: left;
-  color: ${({ $active }) => ($active ? "#111111" : "#333333")};
-  font-size: 14px;
+  color: ${({ $active }) => ($active ? "#234056" : "#333333")};
+  font-size: 15px;
   line-height: 24px;
-  font-weight: ${({ $active }) => ($active ? 700 : 400)};
+  font-weight: ${({ $active }) => ($active ? 700 : 500)};
   cursor: pointer;
+
+  &:hover {
+    background: ${({ $active }) => ($active ? "#e7f0f6" : "#f3f6f8")};
+  }
 `;
 
 export const ContentArea = styled.div`
-  width: 360px;
-  min-width: 360px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+`;
+
+export const PageHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+export const PageTitle = styled.h1`
+  margin: 0;
+  color: #111111;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+`;
+
+export const PageDescription = styled.p`
+  margin: 0;
+  color: #5f6b76;
+  font-size: 15px;
+  line-height: 1.6;
 `;
 
 export const Section = styled.section`
-  margin-bottom: 44px;
+  padding: 28px 32px;
+  border: 1px solid #d9e0e6;
+  border-radius: 18px;
+  background: #ffffff;
+
+  @media (max-width: 640px) {
+    padding: 22px 20px;
+  }
 `;
 
 export const Title = styled.h2`
-  margin: 0 0 18px;
-  color: #7ea0b7;
-  font-size: 20px;
-  font-weight: 400;
-  line-height: 28px;
+  margin: 0 0 20px;
+  color: #111111;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.4;
 `;
 
 export const InfoList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 `;
 
 export const InfoRow = styled.div`
-  min-height: 40px;
+  min-height: 64px;
   display: grid;
-  grid-template-columns: 1fr 84px;
+  grid-template-columns: minmax(110px, 160px) minmax(0, 1fr) auto;
   align-items: center;
   column-gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid #e9edf1;
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    row-gap: 10px;
+  }
 `;
 
 export const Label = styled.span`
-  color: black;
+  color: #60707c;
   font-size: 14px;
+  font-weight: 600;
   line-height: 24px;
   white-space: nowrap;
 `;
 
 export const Value = styled.span`
-  color: black;
-  font-size: 14px;
+  color: #111111;
+  font-size: 15px;
   line-height: 24px;
-  white-space: nowrap;
+  font-weight: 600;
+  word-break: break-word;
 `;
 
 export const PhoneInput = styled.input`
-  width: 150px;
-  height: 30px;
-  padding: 0 10px;
-  border: 1px solid #7ea0b7;
-  border-radius: 8px;
+  width: min(100%, 280px);
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #c8d4dd;
+  border-radius: 10px;
   outline: none;
   font-size: 14px;
   box-sizing: border-box;
 `;
 
 export const SmallButtonBox = styled.div`
-  width: 54px;
-  height: 30px;
-  margin-left: 18px;
+  width: 84px;
+  height: 40px;
 
   button {
+    width: 100%;
+    height: 100%;
     border-radius: 10px;
-    padding: 4px 8px;
+    padding: 8px 10px;
   }
 
   span {
-    font-size: 11px;
-    line-height: 16px;
+    font-size: 13px;
+    line-height: 18px;
   }
 `;
 
 export const TextGroup = styled.div`
   display: flex;
   align-items: center;
-  gap: 4px;
   min-width: 0;
 `;
 
 export const DeleteRow = styled.div`
-  min-height: 40px;
+  min-height: 64px;
   display: grid;
-  grid-template-columns: 1fr 84px;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   column-gap: 24px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    row-gap: 14px;
+  }
 `;
 
 export const DeleteText = styled.span`
-  color: black;
-  font-size: 14px;
+  color: #333333;
+  font-size: 15px;
   line-height: 24px;
 `;
 
 export const DeleteButton = styled.button`
-  width: 84px;
+  width: 110px;
   height: 40px;
   border: none;
   border-radius: 12px;
   background: #d32f2f;
-  color: black;
+  color: white;
   font-size: 14px;
+  font-weight: 700;
   line-height: 24px;
   cursor: pointer;
   white-space: nowrap;
@@ -187,13 +255,17 @@ export const AlertBox = styled.div`
 `;
 
 export const EmptyContent = styled.div`
+  padding: 28px 32px;
+  border: 1px solid #d9e0e6;
+  border-radius: 18px;
+  background: #ffffff;
   color: #555555;
   font-size: 16px;
   line-height: 24px;
 `;
 
 export const FixedButtonBox = styled.div`
-  width: 84px;
+  width: 110px;
   height: 40px;
 
   button {

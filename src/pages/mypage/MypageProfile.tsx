@@ -8,17 +8,15 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import * as S from "../../style/MypagePrivacy.style";
 
-function MypagePrivacy() {
+function MypageProfile() {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
   const [phoneNumber, setPhoneNumber] = useState("010-1234-5678");
   const [isEditingPhone, setIsEditingPhone] = useState(false);
-
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDeleteComplete, setShowDeleteComplete] = useState(false);
 
-  //백엔드 연결되면 여기 값만 받아온 사용자 정보로 교체하면 됨
   const user = {
     name: "XXX",
     email: "abc@naver.com",
@@ -35,8 +33,6 @@ function MypagePrivacy() {
   };
 
   const handleDeleteComplete = () => {
-    // TODO: 백엔드 연동 시 회원 탈퇴 완료 후 서버 세션 정리까지 포함해서
-    // logout()을 호출하도록 이어 붙이면 됩니다.
     logout();
     navigate("/");
   };
@@ -48,30 +44,29 @@ function MypagePrivacy() {
 
         <S.InfoList>
           <S.InfoRow>
+            <S.Label>이름</S.Label>
             <S.TextGroup>
-              <S.Label>이름 :</S.Label>
               <S.Value>{user.name}</S.Value>
             </S.TextGroup>
           </S.InfoRow>
 
           <S.InfoRow>
+            <S.Label>이메일</S.Label>
             <S.TextGroup>
-              <S.Label>이메일 :</S.Label>
               <S.Value>{user.email}</S.Value>
             </S.TextGroup>
           </S.InfoRow>
 
           <S.InfoRow>
+            <S.Label>생년월일</S.Label>
             <S.TextGroup>
-              <S.Label>생년월일 :</S.Label>
               <S.Value>{user.birthDate}</S.Value>
             </S.TextGroup>
           </S.InfoRow>
 
           <S.InfoRow>
+            <S.Label>전화번호</S.Label>
             <S.TextGroup>
-              <S.Label>전화번호 :</S.Label>
-
               {isEditingPhone ? (
                 <S.PhoneInput
                   value={phoneNumber}
@@ -98,8 +93,9 @@ function MypagePrivacy() {
           </S.InfoRow>
 
           <S.InfoRow>
+            <S.Label>비밀번호</S.Label>
             <S.TextGroup>
-              <S.Label>비밀번호</S.Label>
+              <S.Value>보안을 위해 비밀번호는 표시되지 않습니다.</S.Value>
             </S.TextGroup>
 
             <S.FixedButtonBox>
@@ -115,10 +111,12 @@ function MypagePrivacy() {
       </S.Section>
 
       <S.Section>
-        <S.Title>지원</S.Title>
+        <S.Title>계정 관리</S.Title>
 
         <S.DeleteRow>
-          <S.DeleteText>내 계정 삭제</S.DeleteText>
+          <S.DeleteText>
+            회원 탈퇴를 진행하면 저장된 정보와 사용 기록이 함께 삭제됩니다.
+          </S.DeleteText>
           <S.DeleteButton
             type="button"
             onClick={() => setShowDeleteConfirm(true)}
@@ -135,8 +133,8 @@ function MypagePrivacy() {
               title="계정을 영구적으로 삭제하시겠습니까?"
               description={
                 <>
-                  이 작업은 되돌릴 수 없습니다. 등록된 모든 자료와 보고서,
-                  AI챗봇 내용이 삭제됩니다.
+                  이 작업은 되돌릴 수 없습니다. 등록한 모든 자료와 보고서,
+                  AI챗봇 이용내역이 함께 삭제됩니다.
                 </>
               }
               cancelText="취소"
@@ -152,7 +150,7 @@ function MypagePrivacy() {
         <S.AlertOverlay>
           <S.AlertBox>
             <OneButtonAlert
-              title="영구 삭제가 완료되었습니다."
+              title="계정 삭제가 완료되었습니다."
               description={
                 <>
                   이용해 주셔서 감사합니다. 계정 정보는 모두 삭제되었으며,
@@ -169,4 +167,4 @@ function MypagePrivacy() {
   );
 }
 
-export default MypagePrivacy;
+export default MypageProfile;

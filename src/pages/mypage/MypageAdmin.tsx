@@ -107,6 +107,12 @@ function MypageAdmin() {
     setShowDeleteConfirm(true);
   };
 
+  const handleUserRowClick = (userId: string) => {
+    setSelectedUserId((prev) => (prev === userId ? null : userId));
+    setPendingRole(null);
+    setShowDeleteConfirm(false);
+  };
+
   const handleConfirmDeleteUser = () => {
     if (!selectedUserId) return;
 
@@ -186,7 +192,7 @@ function MypageAdmin() {
             <S.TableRow
               key={user.id}
               $selected={selectedUserId === user.id}
-              onClick={() => setSelectedUserId(user.id)}
+              onClick={() => handleUserRowClick(user.id)}
             >
               <td>{user.id}</td>
               <td>{user.name}</td>
