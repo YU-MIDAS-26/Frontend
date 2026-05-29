@@ -59,7 +59,8 @@ const ChatBox = styled.section<{ $open: boolean }>`
 
   opacity: ${(props) => (props.$open ? 1 : 0)};
   visibility: ${(props) => (props.$open ? "visible" : "hidden")};
-  transform: ${(props) => (props.$open ? "translateY(0)" : "translateY(20px)")};
+  transform: ${(props) =>
+    props.$open ? "translateY(0)" : "translateY(20px)"};
 
   transition: all 0.25s ease;
 `;
@@ -105,7 +106,8 @@ const Bubble = styled.div<{ $role: "user" | "assistant" }>`
   align-self: ${(props) =>
     props.$role === "user" ? "flex-end" : "flex-start"};
 
-  background: ${(props) => (props.$role === "user" ? "#7ea0b7" : "#e9ecef")};
+  background: ${(props) =>
+    props.$role === "user" ? "#7ea0b7" : "#e9ecef"};
 
   color: ${(props) => (props.$role === "user" ? "white" : "#111")};
 
@@ -165,7 +167,8 @@ export default function FloatingChatBot() {
     {
       id: 1,
       role: "assistant",
-      content: "안녕하세요. 자영업자 가게 관리를 도와주는 AI 비서입니다.",
+      content:
+        "안녕하세요. 자영업자 가게 관리를 도와주는 AI 비서입니다.",
     },
   ]);
 
@@ -196,7 +199,9 @@ export default function FloatingChatBot() {
       <ChatBox $open={open}>
         <Header>
           AI 챗봇
-          <CloseButton onClick={() => setOpen(false)}>✕</CloseButton>
+          <CloseButton onClick={() => setOpen(false)}>
+            ✕
+          </CloseButton>
         </Header>
 
         <Messages>

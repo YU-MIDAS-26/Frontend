@@ -11,6 +11,7 @@ type TopbarProps = {
   onSignupClick?: () => void;
   onLogoutClick?: () => void;
   onMyPageClick?: () => void;
+  onAuthClick: () => void;
 };
 
 const Bar = styled.header`

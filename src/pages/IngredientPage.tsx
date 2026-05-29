@@ -6,6 +6,7 @@ type Ingredient = {
   name: string;
   weight: string;
   origin: string;
+  showStores?: boolean;
 };
 
 type Store = {
@@ -60,6 +61,25 @@ const Button = styled.button`
   border-radius: 6px;
   padding: 10px 14px;
   cursor: pointer;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const EditButton = styled(Button)`
+  background: #ffc107;
+`;
+
+const DeleteButton = styled(Button)`
+  background: #dc3545;
+  color: white;
+`;
+
+const SearchButton = styled(Button)`
+  background: #28a745;
+  color: white;
 `;
 
 const CardGrid = styled.div`
@@ -135,6 +155,35 @@ export default function IngredientPage() {
     alert("재료 등록이 완료되었습니다.");
   };
 
+  const handleDelete = (id: number) => {
+  setIngredients((prev) =>
+    prev.filter((item) => item.id !== id)
+  );
+};
+
+const handleEdit = (item: Ingredient) => {
+  setName(item.name);
+  setWeight(item.weight);
+  setOrigin(item.origin);
+
+  setIngredients((prev) =>
+    prev.filter((i) => i.id !== item.id)
+  );
+};
+
+const handleShowStores = (id: number) => {
+  setIngredients((prev) =>
+    prev.map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            showStores: !item.showStores,
+          }
+        : item
+    )
+  );
+};
+
   return (
     <Page>
       <Section>
@@ -168,16 +217,90 @@ export default function IngredientPage() {
             <Small>아직 등록된 재료가 없습니다.</Small>
           ) : (
             ingredients.map((item) => (
-              <Card key={item.id}>
+  <div key={item.id}>
+    <Card>
+      <StoreInfo>
+        <strong>{item.name}</strong>
+
+        <Small>
+          무게: {item.weight}
+          {" / "}
+          원산지: {item.origin}
+        </Small>
+      </StoreInfo>
+
+      <ButtonGroup>
+        <EditButton
+          onClick={() => handleEdit(item)}
+        >
+          수정
+        </EditButton>
+
+        <DeleteButton
+          onClick={() => handleDelete(item.id)}
+        >
+          삭제
+        </DeleteButton>
+
+        <SearchButton
+          onClick={() => handleShowStores(item.id)}
+        >
+          최저가 검색
+        </SearchButton>
+      </ButtonGroup>
+    </Card>
+
+    {item.showStores && (
+      <Section
+        style={{
+          marginTop: "10px",
+        }}
+      >
+        <Title>
+          {item.name} 최저가 구매처 TOP 5
+        </Title>
+
+        <CardGrid>
+          {cheapestStores.map(
+            (store, index) => (
+              <Card key={store.id}>
                 <StoreInfo>
-                  <strong>{item.name}</strong>
+                  <strong>
+                    {index + 1}.
+                    {" "}
+                    {store.name}
+                  </strong>
+
                   <Small>
-                    무게: {item.weight} / 원산지: {item.origin}
+                    가격:
+                    {" "}
+                    {store.price.toLocaleString()}
+                    원
+                    {" / "}
+                    {store.delivery}
                   </Small>
                 </StoreInfo>
+
+                <Button
+                  onClick={() =>
+                    window.open(
+                      store.url,
+                      "_blank"
+                    )
+                  }
+                >
+                  구매처 이동
+                </Button>
               </Card>
-            ))
+            )
           )}
+        </CardGrid>
+      </Section>
+    )}
+  </div>
+))
+            )
+          }
         </CardGrid>
 
         <div style={{ marginTop: "16px" }}>
@@ -185,28 +308,7 @@ export default function IngredientPage() {
         </div>
       </Section>
 
-      <Section>
-        <Title>최저가 구매처 TOP 5</Title>
-
-        <CardGrid>
-          {cheapestStores.map((store, index) => (
-            <Card key={store.id}>
-              <StoreInfo>
-                <strong>
-                  {index + 1}. {store.name}
-                </strong>
-                <Small>
-                  가격: {store.price.toLocaleString("ko-KR")}원 / {store.delivery}
-                </Small>
-              </StoreInfo>
-
-              <Button onClick={() => window.open(store.url, "_blank")}>
-                구매처 이동
-              </Button>
-            </Card>
-          ))}
-        </CardGrid>
-      </Section>
+      
     </Page>
   );
 }
