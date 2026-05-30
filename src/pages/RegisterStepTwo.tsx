@@ -15,14 +15,18 @@ const BUSINESS_TYPE_OPTIONS: Array<RegisterStepTwoPayload["businessType"]> = [
   "중소상공인",
 ];
 
-const TAX_TYPE_OPTIONS: Array<Exclude<RegisterStepTwoPayload["taxType"], "">> = [
-  "과세",
-  "비과세",
-];
+const TAX_TYPE_OPTIONS: Array<Exclude<RegisterStepTwoPayload["taxType"], "">> =
+  ["과세", "비과세"];
 
 const RegisterStepTwo = () => {
   const navigate = useNavigate();
+
+  // 1단계에서 가입 신청했던 studentId를 유지하거나 가져옵니다 (예시로 로컬 스토리지 선조회 처리)
+  const savedStudentId =
+    localStorage.getItem("pendingStudentId") || "test_user";
+
   const [formData, setFormData] = useState<RegisterStepTwoPayload>({
+    studentId: savedStudentId,
     businessNumber: "",
     companyName: "",
     ceoName: "",
@@ -96,11 +100,12 @@ const RegisterStepTwo = () => {
       return;
     }
 
-    console.log("[RegisterStepTwo] step two submit payload:", formData);
-
     mutate(formData, {
-      onSuccess: () => {
-        navigate("/register-complete");
+      onSuccess: (res) => {
+        if (res.status === "SUCCESS") {
+          localStorage.removeItem("pendingStudentId");
+          navigate("/register-complete");
+        }
       },
       onError: (error) => {
         setSubmitError(error.message);
@@ -244,7 +249,9 @@ const RegisterStepTwo = () => {
             </S.FileUploadText>
           </S.FileUploadField>
 
-          {submitError ? <S.Message $tone="error">{submitError}</S.Message> : null}
+          {submitError ? (
+            <S.Message $tone="error">{submitError}</S.Message>
+          ) : null}
 
           <S.NextButton
             type="submit"

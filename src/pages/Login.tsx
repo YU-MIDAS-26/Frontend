@@ -118,7 +118,7 @@ function Login() {
   const [rememberMe, setRememberMe] = useState(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login: authContextLogin } = useAuth();
 
   const loginMutation = useLoginMutation();
 
@@ -136,19 +136,22 @@ function Login() {
     }
 
     try {
-      await loginMutation.mutateAsync({
+      const res = await loginMutation.mutateAsync({
         studentId,
         password,
         rememberMe,
       });
 
-      // TODO: 백엔드 연동 시 여기서는 로그인 API 응답값만 넘기고,
-      // 실제 세션 저장은 AuthContext에서 처리하도록 유지하면 됩니다.
-      login(studentId);
-
-      navigate("/");
+      // 백엔드가 성공 응답을 주면 토큰이나 유저 이름을 저장하도록 연결
+      if (res.status === "SUCCESS") {
+        // 로컬스토리지에 액세스 토큰 보관 처리
+        localStorage.setItem("accessToken", res.data.accessToken);
+        // AuthContext에 로그인 유저 이름 심기
+        authContextLogin(res.data.user.name);
+        navigate("/");
+      }
     } catch {
-      // 에러 메시지는 loginMutation.isError 쪽에서 이미 보여줌
+      // 에러 메시지는 loginMutation.isError 핸들러가 UI에 자동 표시
     }
   };
 
@@ -199,7 +202,7 @@ function Login() {
           )}
 
           {loginMutation.isSuccess && !loginMutation.isError && (
-            <SuccessMessage>{"완료(추후 로그인 구현)"}</SuccessMessage>
+            <SuccessMessage>{"로그인 성공"}</SuccessMessage>
           )}
 
           <FooterLinks>
