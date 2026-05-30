@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "./client";
 import type { ApiResponse } from "./auth";
 
-// --- 👤 개인 마이페이지 관련 기존 규격 ---
 export type UserProfileData = {
   id: number;
   studentId: string;
@@ -59,7 +58,6 @@ export const useUpdatePhoneMutation = () => {
 export const useDeleteAccountMutation = () =>
   useMutation({ mutationFn: deleteMyAccount });
 
-// --- 👑 [신규 추가] 관리자 회원 가입 승인 대기 관련 규격 ---
 export type PendingUser = {
   userId: number;
   studentId: string;
@@ -87,7 +85,13 @@ export type RejectPayload = {
   rejectionReason: string;
 };
 
-// 1. 관리자 승인 대기 회원 목록 조회 (GET)
+export type AdminUserActionResponse = {
+  userId: number;
+  studentId: string;
+  status: string;
+  message: string;
+};
+
 export const getPendingUsers = async (): Promise<
   ApiResponse<PendingUser[]>
 > => {
@@ -97,32 +101,28 @@ export const getPendingUsers = async (): Promise<
   return response.data;
 };
 
-// 2. 관리자 회원 가입 승인 (PATCH)
 export const approveUser = async (
   userId: number,
-): Promise<ApiResponse<any>> => {
-  const response = await apiClient.patch<ApiResponse<any>>(
+): Promise<ApiResponse<AdminUserActionResponse>> => {
+  const response = await apiClient.patch<ApiResponse<AdminUserActionResponse>>(
     `/api/admin/users/${userId}/approve`,
   );
   return response.data;
 };
-
-// 3. 관리자 회원 가입 거절 (PATCH)
 export const rejectUser = async ({
   userId,
   payload,
 }: {
   userId: number;
   payload: RejectPayload;
-}): Promise<ApiResponse<any>> => {
-  const response = await apiClient.patch<ApiResponse<any>>(
+}): Promise<ApiResponse<AdminUserActionResponse>> => {
+  const response = await apiClient.patch<ApiResponse<AdminUserActionResponse>>(
     `/api/admin/users/${userId}/reject`,
     payload,
   );
   return response.data;
 };
 
-// --- 관리자 전용 React Query Hooks ---
 export const usePendingUsersQuery = () =>
   useQuery({
     queryKey: ["admin", "pendingUsers"],
