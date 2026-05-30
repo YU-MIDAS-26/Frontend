@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { SubmitButton, TextField } from "../components/Common";
+import { usePasswordResetLinkMutation } from "../api/login_api";
 
 const Page = styled.main`
   min-height: calc(1024px - 70px);
@@ -55,6 +56,10 @@ const Message = styled.p`
   font-size: 13px;
 `;
 
+const ErrorMessage = styled(Message)`
+  color: #c43d3d;
+`;
+
 const isValidId = (id: string) => id.trim().length >= 6;
 
 const isValidEmail = (email: string) =>
@@ -66,11 +71,17 @@ function PasswardFind() {
   const [studentId, setStudentId] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // 리액트 쿼리 실시간 서버 전송 뮤테이션 가동
+  const resetLinkMutation = usePasswordResetLinkMutation();
 
   const isFormValid = isValidId(studentId) && isValidEmail(email);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setMessage("");
+    setErrorMessage("");
 
     if (!isValidId(studentId)) {
       alert("아이디는 6자 이상 입력해야 합니다.");
@@ -82,15 +93,27 @@ function PasswardFind() {
       return;
     }
 
-    // TODO: 백엔드 연결 후 재설정 링크 이메일 발송 API로 교체
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    setMessage("재설정 링크가 이메일로 발송되었습니다.");
-
-    // 더미 확인용. 실제로는 이메일 링크 타고 /password-reset 진입
-    setTimeout(() => {
-      navigate("/password-reset");
-    }, 700);
+    // 🚀 실제 백엔드 API 요청 트리거
+    resetLinkMutation.mutate(
+      { studentId, email },
+      {
+        onSuccess: (res) => {
+          if (res.status === "SUCCESS") {
+            setMessage("재설정 링크가 이메일로 발송되었습니다.");
+            // 원래는 이메일 링크를 타고 들어가야 하지만 개발 확인용 자동 리다이렉트 유지
+            setTimeout(() => {
+              navigate("/password-reset");
+            }, 1500);
+          }
+        },
+        onError: (err) => {
+          setErrorMessage(
+            err.message ||
+              "존재하지 않는 회원 정보이거나 링크 발송에 실패했습니다.",
+          );
+        },
+      },
+    );
   };
 
   return (
@@ -117,12 +140,18 @@ function PasswardFind() {
         </FieldGroup>
 
         <ButtonBox>
-          <SubmitButton type="submit" isActive={isFormValid}>
-            재설정 링크 보내기
+          <SubmitButton
+            type="submit"
+            isActive={isFormValid && !resetLinkMutation.isPending}
+          >
+            {resetLinkMutation.isPending
+              ? "링크 발송 중..."
+              : "재설정 링크 보내기"}
           </SubmitButton>
         </ButtonBox>
 
         {message && <Message>{message}</Message>}
+        {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
       </Card>
     </Page>
   );
