@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
-import type { LoginResponse } from "./auth";
 import { login } from "./auth";
+import type { LoginRequest } from "./auth";
 
 export type LoginFormValues = {
   studentId: string;
@@ -15,25 +15,10 @@ const validateLoginForm = ({
   if (!studentId.trim()) {
     return "아이디를 입력해 주세요.";
   }
-
   if (!password.trim()) {
     return "비밀번호를 입력해 주세요.";
   }
-
   return null;
-};
-
-const mockLogin = async (payload: LoginFormValues): Promise<LoginResponse> => {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
-  return {
-    accessToken: "mock-access-token",
-    refreshToken: "mock-refresh-token",
-    user: {
-      id: payload.studentId,
-      name: "테스트 사용자",
-    },
-  };
 };
 
 export const useLoginMutation = () =>
@@ -45,9 +30,12 @@ export const useLoginMutation = () =>
         throw new Error(validationError);
       }
 
-      // API 실제 연동 코드
-      // return login(payload);
-      void login;
-      return mockLogin(payload);
+      // 실제 백엔드 API 호출 실행
+      const requestPayload: LoginRequest = {
+        studentId: payload.studentId,
+        password: payload.password,
+      };
+
+      return await login(requestPayload);
     },
   });

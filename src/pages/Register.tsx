@@ -171,10 +171,15 @@ function Register() {
       agreedToTerms2,
     };
 
-    console.log("[Register] step one submit payload:", payload);
-
-    await registerStepOneMutation.mutateAsync(payload);
-    navigate("/register2");
+    try {
+      const response = await registerStepOneMutation.mutateAsync(payload);
+      if (response.success) {
+        localStorage.setItem("pendingStudentId", studentId);
+        navigate("/register2");
+      }
+    } catch (error) {
+      // 컴포넌트 내부 FooterMessage 바인딩으로 자동 처리됨
+    }
   };
 
   return (

@@ -11,7 +11,6 @@ type TopbarProps = {
   onSignupClick?: () => void;
   onLogoutClick?: () => void;
   onMyPageClick?: () => void;
-  onAuthClick: () => void;
 };
 
 const Bar = styled.header`
@@ -117,7 +116,6 @@ export default function Topbar({
       navigate("/employee-manage");
       return;
     }
-
     onMenuClick?.(menu);
   };
 
@@ -126,7 +124,6 @@ export default function Topbar({
       onLoginClick();
       return;
     }
-
     navigate("/login");
   };
 
@@ -135,7 +132,6 @@ export default function Topbar({
       onSignupClick();
       return;
     }
-
     navigate("/register");
   };
 
@@ -144,55 +140,62 @@ export default function Topbar({
       onMyPageClick();
       return;
     }
-
     navigate("/mypage");
   };
 
   const handleLogoutClick = () => {
-    onLogoutClick?.();
+    if (onLogoutClick) {
+      onLogoutClick();
+      return;
+    }
+    localStorage.removeItem("accessToken");
+    navigate("/");
   };
 
   return (
     <Bar>
       <BarInner>
         <ResponsiveLeftSection>
-        <LogoButton type="button" onClick={onSiteClick}>
-          {siteName}
-        </LogoButton>
+          <LogoButton
+            type="button"
+            onClick={onSiteClick || (() => navigate("/"))}
+          >
+            {siteName}
+          </LogoButton>
         </ResponsiveLeftSection>
 
         <ResponsiveCenterSection>
-        {menus.map((menu) => (
-          <ActionButton
-            key={menu}
-            type="button"
-            onClick={() => handleMenuClick(menu)}
-          >
-            {menu}
-          </ActionButton>
-        ))}
+          {menus.map((menu) => (
+            <ActionButton
+              key={menu}
+              type="button"
+              onClick={() => handleMenuClick(menu)}
+            >
+              {menu}
+            </ActionButton>
+          ))}
         </ResponsiveCenterSection>
 
         <ResponsiveRightSection>
-        {isLoggedIn ? (
-          <>
-            <ActionButton type="button" onClick={handleMyPageClick}>
-              마이페이지
-            </ActionButton>
-            <ActionButton type="button" onClick={handleLogoutClick}>
-              로그아웃
-            </ActionButton>
-          </>
-        ) : (
-          <>
-            <ActionButton type="button" onClick={handleLoginClick}>
-              로그인
-            </ActionButton>
-            <ActionButton type="button" onClick={handleSignupClick}>
-              회원가입
-            </ActionButton>
-          </>
-        )}
+          {isLoggedIn ? (
+            <>
+              <ActionButton type="button" onClick={handleMyPageClick}>
+                마이페이지
+              </ActionButton>
+              <ActionButton type="button" onClick={handleLogoutClick}>
+                로그아웃
+              </ActionButton>
+            </>
+          ) : (
+            <>
+              <ActionButton type="button" onClick={handleLoginClick}>
+                로그인
+              </ActionButton>
+              <ActionButton type="button" onClick={handleSignupClick}>
+                회원가입
+              </ActionButton>
+            </>
+          )}
         </ResponsiveRightSection>
       </BarInner>
     </Bar>
