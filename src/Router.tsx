@@ -16,11 +16,13 @@ import PasswardReset from "./pages/PasswardReset";
 import EmployeeManage from "./pages/EmployeeManage/EmployeeManage";
 import IngredientPage from "./pages/IngredientPage";
 
+import ErrorPage from "./pages/ErrorPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+    errorElement: <ErrorPage />,
     children: [
       {
         index: true,
@@ -59,7 +61,6 @@ const router = createBrowserRouter([
         path: "/ingredients",
         element: <IngredientPage />,
       },
-
     ],
   },
 ]);
