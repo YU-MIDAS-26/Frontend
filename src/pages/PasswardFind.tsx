@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { SubmitButton, TextField } from "../components/Common";
 import { usePasswordResetLinkMutation } from "../api/login_api";
@@ -66,8 +65,6 @@ const isValidEmail = (email: string) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
 function PasswardFind() {
-  const navigate = useNavigate();
-
   const [studentId, setStudentId] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -93,17 +90,12 @@ function PasswardFind() {
       return;
     }
 
-    // 🚀 실제 백엔드 API 요청 트리거
     resetLinkMutation.mutate(
       { studentId, email },
       {
         onSuccess: (res) => {
           if (res.status === "SUCCESS") {
             setMessage("재설정 링크가 이메일로 발송되었습니다.");
-            // 원래는 이메일 링크를 타고 들어가야 하지만 개발 확인용 자동 리다이렉트 유지
-            setTimeout(() => {
-              navigate("/password-reset");
-            }, 1500);
           }
         },
         onError: (err) => {
