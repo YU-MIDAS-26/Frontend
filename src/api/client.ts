@@ -1,4 +1,3 @@
-//API 요청 공통 설정 파일
 import axios from "axios";
 
 export const apiClient = axios.create({
@@ -8,6 +7,20 @@ export const apiClient = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("accessToken");
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
 
 apiClient.interceptors.response.use(
   (response) => response,

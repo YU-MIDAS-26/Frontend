@@ -165,16 +165,15 @@ export default function Topbar({
         </ResponsiveLeftSection>
 
         <ResponsiveCenterSection>
-          {isLoggedIn &&
-            menus.map((menu) => (
-              <ActionButton
-                key={menu}
-                type="button"
-                onClick={() => handleMenuClick(menu)}
-              >
-                {menu}
-              </ActionButton>
-            ))}
+          {menus.map((menu) => (
+            <ActionButton
+              key={menu}
+              type="button"
+              onClick={() => handleMenuClick(menu)}
+            >
+              {menu}
+            </ActionButton>
+          ))}
         </ResponsiveCenterSection>
 
         <ResponsiveRightSection>

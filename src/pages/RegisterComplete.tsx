@@ -74,7 +74,7 @@ const RegisterComplete = () => {
           <S.SubDescription>
             관리자 승인 이후에 사이트 사용이 가능합니다.
             <span style={{ fontSize: "16px", opacity: 0.8 }}>
-              승인 여부는 가입하신 이메일로 알려드립니다.
+              <br></br>승인 여부는 가입하신 이메일로 알려드립니다.
             </span>
           </S.SubDescription>
         </S.MessageGroup>

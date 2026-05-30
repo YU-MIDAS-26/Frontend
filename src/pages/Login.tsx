@@ -142,11 +142,8 @@ function Login() {
         rememberMe,
       });
 
-      // 백엔드가 성공 응답을 주면 토큰이나 유저 이름을 저장하도록 연결
       if (res.status === "SUCCESS") {
-        // 로컬스토리지에 액세스 토큰 보관 처리
         localStorage.setItem("accessToken", res.data.accessToken);
-        // AuthContext에 로그인 유저 이름 심기
         authContextLogin(res.data.user.name);
         navigate("/");
       }
