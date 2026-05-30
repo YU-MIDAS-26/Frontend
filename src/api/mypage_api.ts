@@ -149,3 +149,23 @@ export const useRejectUserMutation = () => {
     },
   });
 };
+
+export type AdminAllUser = {
+  userId: string;
+  name: string;
+  createdAt: string;
+  role: "ADMIN" | "USER";
+};
+
+export const getAllUsers = async (): Promise<ApiResponse<AdminAllUser[]>> => {
+  const response =
+    await apiClient.get<ApiResponse<AdminAllUser[]>>("/api/admin/users");
+  return response.data;
+};
+
+export const useAdminAllUsersQuery = () =>
+  useQuery({
+    queryKey: ["admin", "allUsers"],
+    queryFn: getAllUsers,
+    select: (res) => res.data,
+  });

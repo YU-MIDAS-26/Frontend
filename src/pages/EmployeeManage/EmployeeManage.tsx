@@ -8,6 +8,17 @@ import {
   useDeleteEmployeeMutation,
 } from "../../api/employee_api";
 
+export type Employee = {
+  id: number;
+  name: string;
+  birth?: string;
+  phone?: string;
+  employeeNumber?: string;
+  payType: "daily" | "hourly";
+  payAmount: string;
+  weeklyHolidayPay: boolean;
+};
+
 export type LocalEmployeeForm = {
   id?: number;
   name: string;

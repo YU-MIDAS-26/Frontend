@@ -2,11 +2,17 @@ import { useState } from "react";
 import MypageProfileView from "./MypageProfileView";
 import MypageAdmin from "./MypageAdmin";
 import * as S from "../../style/MypagePrivacy.style";
+import { useMyProfileQuery } from "../../api/mypage_api";
 
 type MypageTab = "privacy" | "basic" | "admin";
 
 function Mypage() {
   const [selectedTab, setSelectedTab] = useState<MypageTab>("privacy");
+
+  const { data: userProfile } = useMyProfileQuery();
+
+  const isAdmin =
+    userProfile?.role === "ADMIN" || userProfile?.role === "ROLE_ADMIN";
 
   return (
     <S.Page>
@@ -28,13 +34,15 @@ function Mypage() {
             기본 자료
           </S.SideMenuButton>
 
-          <S.SideMenuButton
-            type="button"
-            $active={selectedTab === "admin"}
-            onClick={() => setSelectedTab("admin")}
-          >
-            관리자 페이지
-          </S.SideMenuButton>
+          {isAdmin && (
+            <S.SideMenuButton
+              type="button"
+              $active={selectedTab === "admin"}
+              onClick={() => setSelectedTab("admin")}
+            >
+              관리자 페이지
+            </S.SideMenuButton>
+          )}
         </S.SideMenu>
 
         <S.ContentArea>
@@ -53,7 +61,14 @@ function Mypage() {
             </S.EmptyContent>
           )}
 
-          {selectedTab === "admin" && <MypageAdmin />}
+          {selectedTab === "admin" &&
+            (isAdmin ? (
+              <MypageAdmin />
+            ) : (
+              <S.EmptyContent style={{ color: "#c43d3d", fontWeight: "bold" }}>
+                접근 권한이 없습니다. 관리자 전용 페이지입니다.
+              </S.EmptyContent>
+            ))}
         </S.ContentArea>
       </S.Inner>
     </S.Page>

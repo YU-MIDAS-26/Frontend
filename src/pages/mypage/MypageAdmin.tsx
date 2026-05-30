@@ -9,44 +9,16 @@ import {
   usePendingUsersQuery,
   useApproveUserMutation,
   useRejectUserMutation,
+  useAdminAllUsersQuery,
+  type AdminAllUser,
 } from "../../api/mypage_api";
-
-type UserRole = "관리자" | "회원";
-type AdminUser = {
-  id: string;
-  name: string;
-  joinedAt: string;
-  role: UserRole;
-};
 
 const USERS_PER_PAGE = 10;
 
-const mockUsers: AdminUser[] = [
-  { id: "user001", name: "율무", joinedAt: "2025-12-11 08:59", role: "관리자" },
-  { id: "user002", name: "유진", joinedAt: "2025-12-11 09:00", role: "회원" },
-  { id: "user003", name: "테스트", joinedAt: "2025-12-11 10:20", role: "회원" },
-  { id: "user004", name: "김민지", joinedAt: "2025-12-12 11:30", role: "회원" },
-  { id: "user005", name: "박서준", joinedAt: "2025-12-13 13:10", role: "회원" },
-  {
-    id: "user006",
-    name: "이하늘",
-    joinedAt: "2025-12-14 14:22",
-    role: "관리자",
-  },
-  { id: "user007", name: "최나래", joinedAt: "2025-12-15 15:41", role: "회원" },
-  { id: "user008", name: "정다은", joinedAt: "2025-12-16 16:03", role: "회원" },
-  { id: "user009", name: "한지민", joinedAt: "2025-12-17 17:25", role: "회원" },
-  { id: "user010", name: "오세훈", joinedAt: "2025-12-18 18:40", role: "회원" },
-  {
-    id: "user011",
-    name: "강도윤",
-    joinedAt: "2025-12-19 19:00",
-    role: "관리자",
-  },
-];
-
 function MypageAdmin() {
-  const [users] = useState<AdminUser[]>(mockUsers);
+  const { data: serverAllUsers = [], isLoading: isAllUsersLoading } =
+    useAdminAllUsersQuery();
+
   const [keyword, setKeyword] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -61,25 +33,20 @@ function MypageAdmin() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectComplete, setShowRejectComplete] = useState(false);
 
-  // 백엔드 실시간 쿼리 가동 (403 우회용 가상 예외처리 포함)
-  const {
-    data: serverPendingData,
-    isLoading: isPendingLoading,
-    isError,
-  } = usePendingUsersQuery();
+  const { data: serverPendingData = [], isLoading: isPendingLoading } =
+    usePendingUsersQuery();
   const approveMutation = useApproveUserMutation();
   const rejectMutation = useRejectUserMutation();
 
-  // 상단 검색 필터
   const filteredUsers = useMemo(() => {
     const trimmedKeyword = keyword.trim().toLowerCase();
-    if (!trimmedKeyword) return users;
-    return users.filter(
-      (user) =>
-        user.id.toLowerCase().includes(trimmedKeyword) ||
+    if (!trimmedKeyword) return serverAllUsers;
+    return serverAllUsers.filter(
+      (user: AdminAllUser) =>
+        user.userId.toLowerCase().includes(trimmedKeyword) ||
         user.name.toLowerCase().includes(trimmedKeyword),
     );
-  }, [keyword, users]);
+  }, [keyword, serverAllUsers]);
 
   const totalPages = Math.max(
     1,
@@ -89,45 +56,18 @@ function MypageAdmin() {
     (page - 1) * USERS_PER_PAGE,
     page * USERS_PER_PAGE,
   );
-  const selectedUser = users.find((user) => user.id === selectedUserId);
+  const selectedUser = serverAllUsers.find(
+    (user: AdminAllUser) => user.userId === selectedUserId,
+  );
 
   const handleSearchChange = (value: string) => {
     setKeyword(value);
     setPage(1);
   };
 
-  const handleUserRowClick = (userId: string) => {
-    setSelectedUserId((prev) => (prev === userId ? null : userId));
-  };
-
-  // 403 에러가 터지면 UI 깨짐 방지 및 정상 테스트용 mock 피드백 백업 데이터 탑재
   const pendingUsers = useMemo(() => {
-    if (isError || !serverPendingData || !Array.isArray(serverPendingData)) {
-      return [
-        {
-          userId: 999,
-          studentId: "20265211",
-          name: "전유진(테스트용 사장님)",
-          email: "zzzin18@naver.com",
-          companyName: "비사이트 역삼 1호점",
-          businessRegistrationNumber: "123-45-67890",
-          representativeName: "전유진",
-          representativePhone: "010-2822-6431",
-          companyAddress: "서울특별시 강남구 역삼동 테헤란로 123",
-          businessType: "개인사업자",
-          openingDate: "2026-05-30",
-          taxType: "일반과세자",
-          businessCategory: "음식점업",
-          businessItem: "커피 및 디저트 전문점",
-          licenseOriginalFileName: "사업자등록증_최종본_제출.pdf",
-          submittedAt: new Date().toISOString(),
-          status: "PENDING_BUSINESS",
-          businessProfileId: 1,
-        },
-      ];
-    }
-    return serverPendingData;
-  }, [isError, serverPendingData]);
+    return Array.isArray(serverPendingData) ? serverPendingData : [];
+  }, [serverPendingData]);
 
   const totalPendingPages = Math.max(
     1,
@@ -141,15 +81,9 @@ function MypageAdmin() {
     (u) => u.userId === selectedPendingId,
   );
 
+  // 가입 승인 API 트리거
   const handleConfirmApprove = () => {
     if (!selectedPendingId) return;
-
-    if (selectedPendingId === 999) {
-      setShowApproveConfirm(false);
-      setSelectedPendingId(null);
-      setShowApproveComplete(true);
-      return;
-    }
 
     approveMutation.mutate(selectedPendingId, {
       onSuccess: () => {
@@ -164,18 +98,11 @@ function MypageAdmin() {
     });
   };
 
+  // 가입 거절 API 트리거
   const handleConfirmReject = () => {
     if (!selectedPendingId) return;
     if (!rejectionReason.trim()) {
       alert("거절 사유를 입력해 주세요.");
-      return;
-    }
-
-    if (selectedPendingId === 999) {
-      setShowRejectModal(false);
-      setRejectionReason("");
-      setSelectedPendingId(null);
-      setShowRejectComplete(true);
       return;
     }
 
@@ -215,7 +142,7 @@ function MypageAdmin() {
           <S.SearchBox>
             <TextField
               value={keyword}
-              placeholder="아이디 / 이름 검색"
+              placeholder="유저 ID / 이름 검색"
               onChange={(event) => handleSearchChange(event.target.value)}
             />
           </S.SearchBox>
@@ -226,31 +153,48 @@ function MypageAdmin() {
       <S.Table>
         <thead>
           <tr>
-            <th>유저 아이디</th>
+            <th>유저 ID</th>
             <th>이름</th>
             <th>가입일자</th>
             <th>역할</th>
           </tr>
         </thead>
         <tbody>
-          {visibleUsers.map((user) => (
-            <S.TableRow
-              key={user.id}
-              $selected={selectedUserId === user.id}
-              onClick={() => handleUserRowClick(user.id)}
-            >
-              <td>{user.id}</td>
-              <td>{user.name}</td>
-              <td>{user.joinedAt}</td>
-              <td>{user.role}</td>
-            </S.TableRow>
-          ))}
+          {isAllUsersLoading ? (
+            <tr>
+              <S.EmptyCell colSpan={4}>
+                백엔드에서 회원 목록을 불러오는 중...
+              </S.EmptyCell>
+            </tr>
+          ) : (
+            visibleUsers.map((user: AdminAllUser) => (
+              <S.TableRow
+                key={user.userId}
+                $selected={selectedUserId === user.userId}
+                onClick={() =>
+                  setSelectedUserId((prev) =>
+                    prev === user.userId ? null : user.userId,
+                  )
+                }
+              >
+                <td>{user.userId}</td>
+                <td>{user.name}</td>
+                <td>{formatSubmitDate(user.createdAt)}</td>
+                <td>{user.role === "ADMIN" ? "관리자" : "회원"}</td>
+              </S.TableRow>
+            ))
+          )}
+          {!isAllUsersLoading && filteredUsers.length === 0 && (
+            <tr>
+              <S.EmptyCell colSpan={4}>검색 결과가 없습니다.</S.EmptyCell>
+            </tr>
+          )}
         </tbody>
       </S.Table>
 
       <S.SelectedInfo>
         {selectedUser
-          ? `선택된 유저 : ${selectedUser.id} / ${selectedUser.name} / ${selectedUser.role}`
+          ? `선택된 유저 : ${selectedUser.userId} / ${selectedUser.name} / ${selectedUser.role === "ADMIN" ? "관리자" : "회원"}`
           : "상세 내역을 확인하고 싶으시면 목록에서 유저를 선택해 주세요."}
       </S.SelectedInfo>
 
@@ -275,7 +219,7 @@ function MypageAdmin() {
       <div style={{ margin: "50px 0" }} />
 
       <S.SectionTitle style={{ color: "#2c3e50" }}>
-        🚀 회원 가입 승인 관리 (백엔드 실시간 연동)
+        회원 가입 승인 관리
       </S.SectionTitle>
       <p style={{ fontSize: "13px", color: "#7ea0b7", margin: "-10px 0 20px" }}>
         회원가입 후 사업자 등록증 승인을 기다리고 있는 실시간 대기자 명단입니다.
@@ -284,7 +228,7 @@ function MypageAdmin() {
       <S.Table>
         <thead style={{ background: "#f1f5f9" }}>
           <tr>
-            <th>신청 ID(학번)</th>
+            <th>유저 ID</th>
             <th>대표자명</th>
             <th>회사 상호명</th>
             <th>제출 일자</th>
@@ -319,6 +263,13 @@ function MypageAdmin() {
                 <td>{formatSubmitDate(user.submittedAt)}</td>
               </S.TableRow>
             ))
+          )}
+          {!isPendingLoading && pendingUsers.length === 0 && (
+            <tr>
+              <S.EmptyCell colSpan={4}>
+                현재 가입 승인을 대기 중인 회원이 없습니다.
+              </S.EmptyCell>
+            </tr>
           )}
         </tbody>
       </S.Table>
@@ -364,8 +315,7 @@ function MypageAdmin() {
               }}
             >
               <div>
-                <strong>아이디(학번):</strong>{" "}
-                {currentSelectedPending.studentId}
+                <strong>유저 ID:</strong> {currentSelectedPending.studentId}
               </div>
               <div>
                 <strong>이메일 주소:</strong> {currentSelectedPending.email}
@@ -461,7 +411,6 @@ function MypageAdmin() {
         )}
       </div>
 
-      {/* ==================== 팝업 모달창 렌더링 영역 ==================== */}
       {showApproveConfirm && (
         <S.AlertOverlay>
           <S.AdminAlertBox
@@ -502,7 +451,6 @@ function MypageAdmin() {
         </S.AlertOverlay>
       )}
 
-      {/* ✨ [버그 수정 포인트] 거절 사유 입력 모달 레이아웃을 Common.tsx 팝업 규격 스타일로 완벽 개편! */}
       {showRejectModal && (
         <S.AlertOverlay>
           <S.AdminAlertBox
