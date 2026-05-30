@@ -1,11 +1,23 @@
 import { useMutation } from "@tanstack/react-query";
 import { login } from "./auth";
-import type { LoginRequest } from "./auth";
+import { apiClient } from "./client";
+import type { LoginRequest, ApiResponse } from "./auth";
 
 export type LoginFormValues = {
   studentId: string;
   password: string;
   rememberMe: boolean;
+};
+
+export type PasswordResetRequestPayload = {
+  studentId: string;
+  email: string;
+};
+
+export type PasswordResetConfirmPayload = {
+  token: string;
+  newPassword: string;
+  newPasswordConfirm: string;
 };
 
 const validateLoginForm = ({
@@ -30,7 +42,6 @@ export const useLoginMutation = () =>
         throw new Error(validationError);
       }
 
-      // 실제 백엔드 API 호출 실행
       const requestPayload: LoginRequest = {
         studentId: payload.studentId,
         password: payload.password,
@@ -38,4 +49,32 @@ export const useLoginMutation = () =>
 
       return await login(requestPayload);
     },
+  });
+
+export const requestPasswordResetLink = async (
+  payload: PasswordResetRequestPayload,
+): Promise<ApiResponse<{ success: boolean; message: string }>> => {
+  const response = await apiClient.post<
+    ApiResponse<{ success: boolean; message: string }>
+  >("/api/auth/password-reset/request", payload);
+  return response.data;
+};
+
+export const usePasswordResetLinkMutation = () =>
+  useMutation({
+    mutationFn: requestPasswordResetLink,
+  });
+
+export const confirmPasswordReset = async (
+  payload: PasswordResetConfirmPayload,
+): Promise<ApiResponse<{ success: boolean; message: string }>> => {
+  const response = await apiClient.post<
+    ApiResponse<{ success: boolean; message: string }>
+  >("/api/auth/password-reset/confirm", payload);
+  return response.data;
+};
+
+export const usePasswordResetConfirmMutation = () =>
+  useMutation({
+    mutationFn: confirmPasswordReset,
   });

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import { SubmitButton, TextField } from "../components/Common";
+import { usePasswordResetConfirmMutation } from "../api/login_api";
 
 const Page = styled.main`
   min-height: calc(1024px - 70px);
@@ -62,9 +63,16 @@ const isValidPassword = (password: string) =>
 
 function PasswardReset() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // 🔗 이메일 재설정 링크로 넘어온 ?token=abc 값 추출 (없으면 기본 임시 껍데기 값)
+  const resetToken = searchParams.get("token") || "mock_temporary_reset_token";
 
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+
+  // 백엔드 컨펌 API 뮤테이션 가동
+  const resetConfirmMutation = usePasswordResetConfirmMutation();
 
   const isPasswordTouched = password.length > 0;
   const isPasswordConfirmTouched = passwordConfirm.length > 0;
@@ -78,6 +86,7 @@ function PasswardReset() {
     isPasswordConfirmTouched && password !== passwordConfirm
       ? "비밀번호가 일치하지 않습니다."
       : "";
+
   const isFormValid =
     isValidPassword(password) &&
     passwordConfirm.length > 0 &&
@@ -90,10 +99,28 @@ function PasswardReset() {
       return;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    alert("비밀번호가 변경되었습니다.");
-    navigate("/login");
+    // 🚀 백엔드로 변경된 최종 새 패스워드 전송
+    resetConfirmMutation.mutate(
+      {
+        token: resetToken,
+        newPassword: password,
+        newPasswordConfirm: passwordConfirm,
+      },
+      {
+        onSuccess: (res) => {
+          if (res.status === "SUCCESS") {
+            alert("비밀번호가 안전하게 변경되었습니다. 다시 로그인해 주세요.");
+            navigate("/login");
+          }
+        },
+        onError: (err) => {
+          alert(
+            err.message ||
+              "비밀번호 변경 처리 중 오류가 발생했습니다. 링크 만료 여부를 확인하세요.",
+          );
+        },
+      },
+    );
   };
 
   return (
@@ -126,8 +153,11 @@ function PasswardReset() {
         </FieldGroup>
 
         <ButtonBox>
-          <SubmitButton type="submit" isActive={isFormValid}>
-            변경하기
+          <SubmitButton
+            type="submit"
+            isActive={isFormValid && !resetConfirmMutation.isPending}
+          >
+            {resetConfirmMutation.isPending ? "변경 중..." : "변경하기"}
           </SubmitButton>
         </ButtonBox>
       </Card>
