@@ -17,7 +17,6 @@ const Card = styled.section`
   padding: clamp(48px, 6vw, 80px) clamp(20px, 4.5vw, 60px);
   border-radius: 8px;
   background: white;
-  /* 피그마 수치 반영 */
   outline: 3px #7ea0b7 solid;
   outline-offset: -3px;
 
@@ -63,9 +62,6 @@ const HomeButton = styled(SubmitButton)`
   font-family: "ONE Mobile", sans-serif;
 `;
 
-/**
- * [Component] 메인 컴포넌트
- */
 const RegisterComplete = () => {
   const navigate = useNavigate();
 
@@ -73,21 +69,16 @@ const RegisterComplete = () => {
     <S.Page>
       <S.Card>
         <S.MessageGroup>
-          {/* 피그마 디자인대로 메인 타이틀과 서브 문구 배치 */}
-          <S.MainTitle>
-            회원가입이 <br /> 완료되었습니다.
-          </S.MainTitle>
+          <S.MainTitle>회원가입이 완료되었습니다.</S.MainTitle>
 
           <S.SubDescription>
-            관리자 승인 이후에 <br />
-            사이트 사용이 가능합니다. <br />
+            관리자 승인 이후에 사이트 사용이 가능합니다.
             <span style={{ fontSize: "16px", opacity: 0.8 }}>
-              승인 여부는 가입하신 이메일로 알려드립니다.
+              <br></br>승인 여부는 가입하신 이메일로 알려드립니다.
             </span>
           </S.SubDescription>
         </S.MessageGroup>
 
-        {/* 메인으로 돌아가는 액션 */}
         <S.HomeButton isActive={true} onClick={() => navigate("/")}>
           메인으로 돌아가기
         </S.HomeButton>
@@ -96,7 +87,6 @@ const RegisterComplete = () => {
   );
 };
 
-// 위에서 정의한 스타일을 S 객체로 묶어서 사용 (코드 깔끔하게)
 const S = {
   Page,
   Card,
