@@ -8,35 +8,83 @@ import {
 } from "../../components/Common";
 import { useAuth } from "../../contexts/AuthContext";
 import * as S from "../../style/MypagePrivacy.style";
+import {
+  useMyProfileQuery,
+  useUpdatePhoneMutation,
+  useDeleteAccountMutation,
+} from "../../api/mypage_api";
 
 export default function MypageProfileView() {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
-  const [phoneNumber, setPhoneNumber] = useState("010-1234-5678");
+  const { data: user, isLoading } = useMyProfileQuery();
+  const updatePhoneMutation = useUpdatePhoneMutation();
+  const deleteAccountMutation = useDeleteAccountMutation();
+
+  const [localPhone, setLocalPhone] = useState<string | null>(null);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDeleteComplete, setShowDeleteComplete] = useState(false);
 
-  const user = {
-    name: "XXX",
-    email: "abc@naver.com",
-    birthDate: "2025-04-16",
+  const displayPhoneNumber =
+    isEditingPhone && localPhone !== null
+      ? localPhone
+      : user?.phoneNumber || "";
+
+  const handleStartEdit = () => {
+    setLocalPhone(user?.phoneNumber || "");
+    setIsEditingPhone(true);
   };
 
   const handleSavePhone = () => {
-    setIsEditingPhone(false);
+    if (!displayPhoneNumber.trim()) {
+      alert("전화번호를 입력해 주세요.");
+      return;
+    }
+
+    const cleanPhone = displayPhoneNumber.replace(/\D/g, "");
+
+    updatePhoneMutation.mutate(
+      { phoneNumber: cleanPhone },
+      {
+        onSuccess: () => {
+          setIsEditingPhone(false);
+          setLocalPhone(null); // 수정본 상태 초기화
+          alert("전화번호가 성공적으로 변경되었습니다.");
+        },
+        onError: (err) => {
+          alert(err.message || "전화번호 변경에 실패했습니다.");
+        },
+      },
+    );
   };
 
   const handleDeleteAccount = () => {
-    setShowDeleteConfirm(false);
-    setShowDeleteComplete(true);
+    deleteAccountMutation.mutate(undefined, {
+      onSuccess: (res) => {
+        if (res.status === "SUCCESS") {
+          setShowDeleteConfirm(false);
+          setShowDeleteComplete(true);
+        }
+      },
+      onError: (err) => {
+        alert(err.message || "회원 탈퇴 처리 중 오류가 발생했습니다.");
+        setShowDeleteConfirm(false);
+      },
+    });
   };
 
   const handleDeleteComplete = () => {
     logout();
     navigate("/");
   };
+
+  if (isLoading) {
+    return (
+      <S.EmptyContent>내 정보를 안전하게 불러오는 중입니다...</S.EmptyContent>
+    );
+  }
 
   return (
     <>
@@ -47,21 +95,21 @@ export default function MypageProfileView() {
           <S.InfoRow>
             <S.Label>이름</S.Label>
             <S.TextGroup>
-              <S.Value>{user.name}</S.Value>
+              <S.Value>{user?.name || "-"}</S.Value>
             </S.TextGroup>
           </S.InfoRow>
 
           <S.InfoRow>
             <S.Label>이메일</S.Label>
             <S.TextGroup>
-              <S.Value>{user.email}</S.Value>
+              <S.Value>{user?.email || "-"}</S.Value>
             </S.TextGroup>
           </S.InfoRow>
 
           <S.InfoRow>
             <S.Label>생년월일</S.Label>
             <S.TextGroup>
-              <S.Value>{user.birthDate}</S.Value>
+              <S.Value>{user?.birthDate || "-"}</S.Value>
             </S.TextGroup>
           </S.InfoRow>
 
@@ -70,23 +118,20 @@ export default function MypageProfileView() {
             <S.TextGroup>
               {isEditingPhone ? (
                 <S.PhoneInput
-                  value={phoneNumber}
-                  onChange={(event) => setPhoneNumber(event.target.value)}
+                  value={displayPhoneNumber}
+                  onChange={(event) => setLocalPhone(event.target.value)}
                   autoFocus
                 />
               ) : (
-                <S.Value>{phoneNumber}</S.Value>
+                <S.Value>{user?.phoneNumber || "-"}</S.Value>
               )}
             </S.TextGroup>
 
             <S.FixedButtonBox>
               <ButtonSelected
                 type="button"
-                onClick={
-                  isEditingPhone
-                    ? handleSavePhone
-                    : () => setIsEditingPhone(true)
-                }
+                disabled={updatePhoneMutation.isPending}
+                onClick={isEditingPhone ? handleSavePhone : handleStartEdit}
               >
                 {isEditingPhone ? "저장" : "변경하기"}
               </ButtonSelected>
