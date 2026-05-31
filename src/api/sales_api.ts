@@ -35,6 +35,14 @@ export type AiInsight = {
   additionalInsight: string;
 };
 
+export type ForecastDaily = {
+  date: string;
+  expectedSales: number;
+  expectedExpense: number;
+  expectedProfit: number;
+  past: boolean;
+};
+
 export type CreateSalesPayload = {
   saleDate: string;
   cycleType: BackendCycleType;
@@ -59,6 +67,7 @@ export const salesQueryKeys = {
   calendar: (yearMonth: string) => ["finance", "calendar", yearMonth] as const,
   daily: (date: string) => ["finance", "daily", date] as const,
   aiInsight: (yearMonth: string) => ["finance", "ai-insight", yearMonth] as const,
+  forecast: (yearMonth: string) => ["finance", "forecast", yearMonth] as const,
 };
 
 export const toBackendCycle = (cycle: SalesCycle | ExpenseCycle): BackendCycleType =>
@@ -113,6 +122,14 @@ export async function getAiInsight(yearMonth: string) {
   return unwrap(response);
 }
 
+export async function getForecast(yearMonth: string) {
+  const response = await apiClient.get<ApiResponse<ForecastDaily[]>>(
+    "/api/finance/forecast",
+    { params: { yearMonth } },
+  );
+  return unwrap(response);
+}
+
 export function buildHourlySales(hourlyInputs: string[]) {
   return HOUR_SLOTS.map((saleHour, index) => ({
     saleHour,
@@ -143,6 +160,13 @@ export function useAiInsight(yearMonth: string, enabled = true) {
   });
 }
 
+export function useForecast(yearMonth: string) {
+  return useQuery({
+    queryKey: salesQueryKeys.forecast(yearMonth),
+    queryFn: () => getForecast(yearMonth),
+  });
+}
+
 export function useCreateSales() {
   const queryClient = useQueryClient();
 
@@ -153,6 +177,7 @@ export function useCreateSales() {
       queryClient.invalidateQueries({ queryKey: salesQueryKeys.calendar(yearMonth) });
       queryClient.invalidateQueries({ queryKey: salesQueryKeys.daily(variables.saleDate) });
       queryClient.invalidateQueries({ queryKey: salesQueryKeys.aiInsight(yearMonth) });
+      queryClient.invalidateQueries({ queryKey: salesQueryKeys.forecast(yearMonth) });
     },
   });
 }
@@ -167,6 +192,7 @@ export function useCreateVariableCost() {
       queryClient.invalidateQueries({ queryKey: salesQueryKeys.calendar(yearMonth) });
       queryClient.invalidateQueries({ queryKey: salesQueryKeys.daily(variables.costDate) });
       queryClient.invalidateQueries({ queryKey: salesQueryKeys.aiInsight(yearMonth) });
+      queryClient.invalidateQueries({ queryKey: salesQueryKeys.forecast(yearMonth) });
     },
   });
 }
@@ -182,6 +208,9 @@ export function useSaveFixedCost() {
       });
       queryClient.invalidateQueries({
         queryKey: salesQueryKeys.aiInsight(variables.targetYearMonth),
+      });
+      queryClient.invalidateQueries({
+        queryKey: salesQueryKeys.forecast(variables.targetYearMonth),
       });
       queryClient.invalidateQueries({ queryKey: ["finance", "daily"] });
     },
