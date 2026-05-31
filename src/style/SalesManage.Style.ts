@@ -226,3 +226,42 @@ export const SubTitle = styled.p`
   font-size: 15px;
   line-height: 1.5;
 `;
+
+export const PickerHint = styled.p`
+  margin: 0 0 10px;
+  color: #444;
+  font-size: 13px;
+`;
+
+export const CompactDayCard = styled.button<{ $selected: boolean; $inRange?: boolean }>`
+  min-height: 44px;
+  border: 1px solid
+    ${(p) => (p.$selected ? "#5d839f" : p.$inRange ? "#9cb5c7" : "#d0d4d9")};
+  background: ${(p) =>
+    p.$selected ? "#dcebf5" : p.$inRange ? "#edf4f8" : "#f8f9fb"};
+  border-radius: 8px;
+  padding: 6px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+`;
+
+export const MonthGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 420px;
+`;
+
+export const MonthButton = styled.button<{ $selected: boolean }>`
+  border: 1px solid ${(p) => (p.$selected ? "#5d839f" : "#d0d4d9")};
+  background: ${(p) => (p.$selected ? "#dcebf5" : "#f8f9fb")};
+  border-radius: 8px;
+  padding: 12px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+`;
