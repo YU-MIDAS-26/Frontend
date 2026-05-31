@@ -26,14 +26,6 @@ function Mypage() {
             개인 정보
           </S.SideMenuButton>
 
-          <S.SideMenuButton
-            type="button"
-            $active={selectedTab === "basic"}
-            onClick={() => setSelectedTab("basic")}
-          >
-            기본 자료
-          </S.SideMenuButton>
-
           {isAdmin && (
             <S.SideMenuButton
               type="button"
