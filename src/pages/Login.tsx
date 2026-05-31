@@ -174,18 +174,6 @@ function Login() {
             />
           </FieldGroup>
 
-          <AutoLoginRow>
-            <CheckboxButton
-              type="button"
-              aria-label={"자동 로그인"}
-              aria-pressed={rememberMe}
-              onClick={() => setRememberMe((prev) => !prev)}
-            >
-              <Checkbox checked={rememberMe} />
-            </CheckboxButton>
-            <AutoLoginText>{"자동 로그인"}</AutoLoginText>
-          </AutoLoginRow>
-
           <LoginButton
             type="submit"
             disabled={loginMutation.isPending}
@@ -206,7 +194,6 @@ function Login() {
             <FooterButton type="button" onClick={() => navigate("/register")}>
               {"회원가입"}
             </FooterButton>
-            <FooterButton type="button">{"아이디 찾기"}</FooterButton>
             <FooterButton
               type="button"
               onClick={() => navigate("/password-find")}
