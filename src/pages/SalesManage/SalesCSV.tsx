@@ -120,24 +120,6 @@ export default function SalesCSV() {
     }
   };
 
-  // 프리셋 퀵 필터 핸들러
-  const handlePresetFilter = (
-    type: "thisMonth" | "lastMonth" | "todayMonth",
-  ) => {
-    const targetDate = new Date();
-    if (type === "thisMonth") {
-      setCurrentYear(targetDate.getFullYear());
-      setCurrentMonth(targetDate.getMonth() + 1);
-    } else if (type === "lastMonth") {
-      targetDate.setMonth(targetDate.getMonth() - 1);
-      setCurrentYear(targetDate.getFullYear());
-      setCurrentMonth(targetDate.getMonth() + 1);
-    } else if (type === "todayMonth") {
-      setCurrentYear(2026);
-      setCurrentMonth(5);
-    }
-  };
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
