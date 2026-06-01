@@ -1,11 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import * as S from "../../style/SalesManage.Style";
 import { SyncBanner, ScopeNotice } from "./salesManageUi";
-import {
-  reflectsOnSalesCheck,
-  SCOPE_MESSAGES,
-  A_SCOPE,
-} from "./salesBackendScope";
+import { CycleDatePicker } from "./SalesCycleDatePicker";
+import { reflectsOnSalesCheck } from "./salesBackendScope";
 import type { SalesCycle, ExpenseCycle } from "./salesData";
 import {
   HOUR_SLOTS,
@@ -13,13 +10,9 @@ import {
   toNumber,
   today,
   getWeekStart,
-  formatWeekRange,
-  buildCalendarDays,
   monthAnchorDate,
-  sameWeek,
 } from "./salesData";
 import {
-  toYearMonth,
   buildHourlySales,
   toBackendCycle,
   usePostSales,
@@ -28,165 +21,16 @@ import {
   useSalesPeriod,
   useVariablePeriod,
   useFixedCost,
-} from "./salesApi";
+} from "../../api/sales_api";
+import {
+  validateFixedSave,
+  validateSalesSave,
+  validateVariableSave,
+} from "./salesFormValidation";
 
 interface Props {
   autoSalary: number;
-  onFinanceUpdated?: () => void;
   onGoToCheck?: () => void;
-}
-
-type CyclePickerProps = {
-  cycle: SalesCycle | ExpenseCycle;
-  anchorDate: string;
-  selectedMonth: string;
-  calendarYear: number;
-  calendarMonthIndex: number;
-  onAnchorDateChange: (date: string) => void;
-  onSelectedMonthChange: (yearMonth: string) => void;
-  onCalendarYearChange: (year: number) => void;
-  onCalendarMonthIndexChange: (monthIndex: number) => void;
-  hint: string;
-};
-
-function CycleDatePicker({
-  cycle,
-  anchorDate,
-  selectedMonth,
-  calendarYear,
-  calendarMonthIndex,
-  onAnchorDateChange,
-  onSelectedMonthChange,
-  onCalendarYearChange,
-  onCalendarMonthIndexChange,
-  hint,
-}: CyclePickerProps) {
-  const monthDays = useMemo(
-    () => buildCalendarDays(calendarYear, calendarMonthIndex),
-    [calendarYear, calendarMonthIndex],
-  );
-  const firstWeekday = new Date(calendarYear, calendarMonthIndex, 1).getDay();
-  const weekAnchor = getWeekStart(anchorDate);
-
-  if (cycle === "daily" || cycle === "hourly") {
-    return (
-      <>
-        <S.PickerHint>{hint}</S.PickerHint>
-        <S.Row>
-          <S.Label>날짜 선택</S.Label>
-          <S.Input
-            type="date"
-            value={anchorDate}
-            onChange={(e) => onAnchorDateChange(e.target.value)}
-          />
-        </S.Row>
-      </>
-    );
-  }
-
-  if (cycle === "weekly") {
-    return (
-      <>
-        <S.PickerHint>{hint}</S.PickerHint>
-        <S.Row>
-          <S.Label>선택한 주</S.Label>
-          <S.Value>{formatWeekRange(anchorDate)}</S.Value>
-        </S.Row>
-        <S.CalendarHeader>
-          <S.CalendarTitle>
-            {calendarYear}년 {calendarMonthIndex + 1}월
-          </S.CalendarTitle>
-          <S.NavButtons>
-            <S.NavButton
-              type="button"
-              onClick={() => {
-                const base = new Date(calendarYear, calendarMonthIndex - 1, 1);
-                onCalendarYearChange(base.getFullYear());
-                onCalendarMonthIndexChange(base.getMonth());
-              }}
-            >
-              이전 달
-            </S.NavButton>
-            <S.NavButton
-              type="button"
-              onClick={() => {
-                const base = new Date(calendarYear, calendarMonthIndex + 1, 1);
-                onCalendarYearChange(base.getFullYear());
-                onCalendarMonthIndexChange(base.getMonth());
-              }}
-            >
-              다음 달
-            </S.NavButton>
-          </S.NavButtons>
-        </S.CalendarHeader>
-        <S.WeekHeader>
-          {["일", "월", "화", "수", "목", "금", "토"].map((label) => (
-            <S.WeekDay key={label}>{label}</S.WeekDay>
-          ))}
-        </S.WeekHeader>
-        <S.CalendarGrid>
-          {Array.from({ length: firstWeekday }).map((_, index) => (
-            <div key={`empty-${index}`} />
-          ))}
-          {monthDays.map((date) => (
-            <S.CompactDayCard
-              key={date}
-              type="button"
-              $selected={weekAnchor === getWeekStart(date)}
-              $inRange={sameWeek(date, anchorDate)}
-              onClick={() => onAnchorDateChange(getWeekStart(date))}
-            >
-              {Number(date.slice(-2))}
-            </S.CompactDayCard>
-          ))}
-        </S.CalendarGrid>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <S.PickerHint>{hint}</S.PickerHint>
-      <S.Row>
-        <S.Label>선택한 달</S.Label>
-        <S.Value>
-          {selectedMonth.slice(0, 4)}년 {Number(selectedMonth.slice(5, 7))}월
-        </S.Value>
-      </S.Row>
-      <S.CalendarHeader>
-        <S.CalendarTitle>{calendarYear}년</S.CalendarTitle>
-        <S.NavButtons>
-          <S.NavButton
-            type="button"
-            onClick={() => onCalendarYearChange(calendarYear - 1)}
-          >
-            이전 년
-          </S.NavButton>
-          <S.NavButton
-            type="button"
-            onClick={() => onCalendarYearChange(calendarYear + 1)}
-          >
-            다음 년
-          </S.NavButton>
-        </S.NavButtons>
-      </S.CalendarHeader>
-      <S.MonthGrid>
-        {Array.from({ length: 12 }, (_, index) => {
-          const yearMonth = toYearMonth(calendarYear, index);
-          return (
-            <S.MonthButton
-              key={yearMonth}
-              type="button"
-              $selected={selectedMonth === yearMonth}
-              onClick={() => onSelectedMonthChange(yearMonth)}
-            >
-              {index + 1}월
-            </S.MonthButton>
-          );
-        })}
-      </S.MonthGrid>
-    </>
-  );
 }
 
 const resolveBaseDate = (
@@ -203,19 +47,57 @@ const resolveBaseDate = (
   return anchorDate;
 };
 
-export default function SalesInput({
-  autoSalary,
-  onFinanceUpdated,
+function SectionSaveFeedback({
+  label,
+  showSuccess,
+  error,
   onGoToCheck,
-}: Props) {
+}: {
+  label: string;
+  showSuccess: boolean;
+  error: string;
+  onGoToCheck?: () => void;
+}) {
+  if (!showSuccess && !error) return null;
+
+  return (
+    <div style={{ marginBottom: 10 }}>
+      {showSuccess && (
+        <>
+          <S.Value>
+            {label}가 저장되었습니다. 매출 확인(월 지출·순이익)에 반영됩니다.
+          </S.Value>
+          <SyncBanner>
+            저장한 내용이 서버에 반영되었습니다.
+            {onGoToCheck && (
+              <S.NavButton
+                type="button"
+                style={{ marginLeft: 8, padding: "4px 10px", fontSize: 12 }}
+                onClick={onGoToCheck}
+              >
+                매출 확인으로 이동
+              </S.NavButton>
+            )}
+          </SyncBanner>
+        </>
+      )}
+      {error && <S.Value>{error}</S.Value>}
+    </div>
+  );
+}
+
+export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
   const now = new Date();
   const [salesOpen, setSalesOpen] = useState(true);
   const [expenseOpen, setExpenseOpen] = useState(true);
   const [variableOpen, setVariableOpen] = useState(true);
   const [fixedOpen, setFixedOpen] = useState(false);
-  const [saveMessage, setSaveMessage] = useState("");
-  const [saveError, setSaveError] = useState("");
-  const [showSyncBanner, setShowSyncBanner] = useState(false);
+  const [salesSaveSuccess, setSalesSaveSuccess] = useState(false);
+  const [salesSaveError, setSalesSaveError] = useState("");
+  const [variableSaveSuccess, setVariableSaveSuccess] = useState(false);
+  const [variableSaveError, setVariableSaveError] = useState("");
+  const [fixedSaveSuccess, setFixedSaveSuccess] = useState(false);
+  const [fixedSaveError, setFixedSaveError] = useState("");
 
   const [salesCycle, setSalesCycle] = useState<SalesCycle>("daily");
   const [salesAnchorDate, setSalesAnchorDate] = useState(today());
@@ -265,21 +147,14 @@ export default function SalesInput({
     [expenseCycle, expenseAnchorDate, expenseSelectedMonth],
   );
 
-  const {
-    data: salesPeriod,
-    refetch: refetchSales,
-    isFetching: loadingSalesPeriod,
-  } = useSalesPeriod(salesCycle, salesBaseDate);
-  const {
-    data: variablePeriod,
-    refetch: refetchVariable,
-    isFetching: loadingVariablePeriod,
-  } = useVariablePeriod(expenseCycle, expenseBaseDate);
-  const {
-    data: fixedCost,
-    refetch: refetchFixed,
-    isFetching: loadingFixedCost,
-  } = useFixedCost(fixedMonth);
+  const { data: salesPeriod, isFetching: loadingSalesPeriod } = useSalesPeriod(
+    salesCycle,
+    salesBaseDate,
+  );
+  const { data: variablePeriod, isFetching: loadingVariablePeriod } =
+    useVariablePeriod(expenseCycle, expenseBaseDate);
+  const { data: fixedCost, isFetching: loadingFixedCost } =
+    useFixedCost(fixedMonth);
 
   useEffect(() => {
     if (autoSalary > 0) {
@@ -349,15 +224,21 @@ export default function SalesInput({
     [rentInput, utilitiesInput],
   );
 
-  const notifyFinanceUpdated = async () => {
-    onFinanceUpdated?.();
-    setShowSyncBanner(true);
-  };
-
   const saveSales = async () => {
-    setSaveMessage("");
-    setSaveError("");
-    setShowSyncBanner(false);
+    setSalesSaveSuccess(false);
+    setSalesSaveError("");
+
+    const validationError =
+      salesCycle === "hourly"
+        ? validateSalesSave(
+            salesTotalInput,
+            hourlyInputs.map((input) => toNumber(input)),
+          )
+        : validateSalesSave(salesTotalInput);
+    if (validationError) {
+      setSalesSaveError(validationError);
+      return;
+    }
 
     try {
       await createSalesMutation.mutateAsync({
@@ -367,73 +248,70 @@ export default function SalesInput({
         hourlySales:
           salesCycle === "hourly" ? buildHourlySales(hourlyInputs) : undefined,
       });
-      await refetchSales();
-      await notifyFinanceUpdated();
-      setSaveMessage(
-        reflectsOnSalesCheck(salesCycle)
-          ? `매출이 ${SCOPE_MESSAGES.savedCalendar}`
-          : `매출이 ${SCOPE_MESSAGES.savedPeriodOnly}`,
-      );
+      setSalesSaveSuccess(true);
     } catch (error) {
-      setSaveError(
+      setSalesSaveError(
         error instanceof Error ? error.message : "매출 저장에 실패했습니다.",
       );
     }
   };
 
   const saveVariable = async () => {
-    setSaveMessage("");
-    setSaveError("");
-    setShowSyncBanner(false);
+    setVariableSaveSuccess(false);
+    setVariableSaveError("");
+
+    const staffSalary = toNumber(staffSalaryInput);
+    const ingredientCost = toNumber(ingredientCostInput);
+    const validationError = validateVariableSave(staffSalary, ingredientCost);
+    if (validationError) {
+      setVariableSaveError(validationError);
+      return;
+    }
 
     try {
       await createVariableMutation.mutateAsync({
         costDate: expenseBaseDate,
         cycleType: toBackendCycle(expenseCycle),
-        ingredientCost: toNumber(ingredientCostInput),
-        salaryCost: toNumber(staffSalaryInput),
+        ingredientCost,
+        salaryCost: staffSalary,
       });
-      await refetchVariable();
-      await notifyFinanceUpdated();
-      setSaveMessage(
-        reflectsOnSalesCheck(expenseCycle)
-          ? `변동비가 ${SCOPE_MESSAGES.savedCalendar}`
-          : `변동비가 ${SCOPE_MESSAGES.savedPeriodOnly}`,
-      );
+      setVariableSaveSuccess(true);
     } catch (error) {
-      setSaveError(
+      setVariableSaveError(
         error instanceof Error ? error.message : "변동비 저장에 실패했습니다.",
       );
     }
   };
 
   const saveFixed = async () => {
-    setSaveMessage("");
-    setSaveError("");
-    setShowSyncBanner(false);
+    setFixedSaveSuccess(false);
+    setFixedSaveError("");
+
+    const rent = toNumber(rentInput);
+    const utilityCost = toNumber(utilitiesInput);
+    const validationError = validateFixedSave(rent, utilityCost);
+    if (validationError) {
+      setFixedSaveError(validationError);
+      return;
+    }
 
     try {
       await saveFixedMutation.mutateAsync({
         targetYearMonth: fixedMonth,
-        rent: toNumber(rentInput),
-        utilityCost: toNumber(utilitiesInput),
+        rent,
+        utilityCost,
       });
-      await refetchFixed();
-      await notifyFinanceUpdated();
-      setSaveMessage(
-        `고정비가 저장되었습니다. ${A_SCOPE.financeDailyHourlyCalendar ? "매출 확인(월 지출·순이익)에 반영됩니다." : ""}`,
-      );
+      setFixedSaveSuccess(true);
     } catch (error) {
-      setSaveError(
+      setFixedSaveError(
         error instanceof Error ? error.message : "고정비 저장에 실패했습니다.",
       );
     }
   };
 
-  const isSaving =
-    createSalesMutation.isPending ||
-    createVariableMutation.isPending ||
-    saveFixedMutation.isPending;
+  const isSavingSales = createSalesMutation.isPending;
+  const isSavingVariable = createVariableMutation.isPending;
+  const isSavingFixed = saveFixedMutation.isPending;
 
   const periodRangeLabel = (start?: string, end?: string) =>
     start && end ? `${start} ~ ${end}` : "-";
@@ -441,27 +319,13 @@ export default function SalesInput({
   return (
     <S.Section>
       <S.SectionTitle>매출 입력</S.SectionTitle>
-      <ScopeNotice>
-        저장·조회: POST/GET period API (하루·한주·한달·시간 / 변동비·고정비). 매출 확인
-        캘린더는 하루·시간별 집계만 표시됩니다.
-      </ScopeNotice>
 
-      {saveMessage && <S.Value>{saveMessage}</S.Value>}
-      {saveError && <S.Value>{saveError}</S.Value>}
-      {showSyncBanner && (
-        <SyncBanner>
-          저장한 내용이 서버에 반영되었습니다.
-          {onGoToCheck && (
-            <S.NavButton
-              type="button"
-              style={{ marginLeft: 8, padding: "4px 10px", fontSize: 12 }}
-              onClick={onGoToCheck}
-            >
-              매출 확인으로 이동
-            </S.NavButton>
-          )}
-        </SyncBanner>
-      )}
+      <SectionSaveFeedback
+        label="매출 입력"
+        showSuccess={salesSaveSuccess}
+        error={salesSaveError}
+        onGoToCheck={onGoToCheck}
+      />
 
       <S.AccordionTitle
         type="button"
@@ -486,10 +350,22 @@ export default function SalesInput({
               {/* A주석 END: 한주·한달 */}
             </S.Select>
           </S.Row>
+          {salesCycle === "weekly" && (
+            <ScopeNotice $variant="info">
+              「한주」로 저장한 매출·지출은 매출 확인의 첫째주·둘째주… 주간 요약에
+              표시됩니다. 일별 칸에는 넣지 않습니다.
+            </ScopeNotice>
+          )}
+          {salesCycle === "monthly" && (
+            <ScopeNotice $variant="info">
+              「한달」로 저장한 매출·지출은 매출 확인 상단의{" "}
+              {Number(salesSelectedMonth.slice(5, 7))}월 매출·지출·순이익 합계에 포함됩니다.
+              일별 칸에는 넣지 않습니다.
+            </ScopeNotice>
+          )}
           {!reflectsOnSalesCheck(salesCycle) && (
             <ScopeNotice $variant="warn">
-              「한주」「한달」은 이 화면에서 저장·조회됩니다. 매출 확인 캘린더에는 나타나지
-              않을 수 있습니다.
+              이 주기는 매출 확인에 반영되지 않을 수 있습니다.
             </ScopeNotice>
           )}
 
@@ -558,7 +434,7 @@ export default function SalesInput({
             <S.Label>저장 예정 금액</S.Label>
             <S.Value>{toWon(salesTotalInput)}원</S.Value>
           </S.Row>
-          <S.SaveButton type="button" onClick={saveSales} disabled={isSaving}>
+          <S.SaveButton type="button" onClick={saveSales} disabled={isSavingSales}>
             매출 저장/수정
           </S.SaveButton>
         </S.Panel>
@@ -573,6 +449,13 @@ export default function SalesInput({
       </S.AccordionTitle>
       {expenseOpen && (
         <>
+          <SectionSaveFeedback
+            label="변동비"
+            showSuccess={variableSaveSuccess}
+            error={variableSaveError}
+            onGoToCheck={onGoToCheck}
+          />
+
           <S.AccordionTitle
             type="button"
             $open={variableOpen}
@@ -597,10 +480,19 @@ export default function SalesInput({
                   {/* A주석 END: 변동비 한주·한달 */}
                 </S.Select>
               </S.Row>
+              {expenseCycle === "weekly" && (
+                <ScopeNotice $variant="info">
+                  「한주」 변동비는 매출 확인의 주간 요약(첫째주·둘째주…)에 표시됩니다.
+                </ScopeNotice>
+              )}
+              {expenseCycle === "monthly" && (
+                <ScopeNotice $variant="info">
+                  「한달」 변동비는 매출 확인 상단 월 합계에 포함됩니다.
+                </ScopeNotice>
+              )}
               {!reflectsOnSalesCheck(expenseCycle) && (
                 <ScopeNotice $variant="warn">
-                  「한주」「한달」 변동비는 period API로 저장·조회됩니다. 매출 확인
-                  캘린더 일별 합계와 다를 수 있습니다.
+                  이 주기는 매출 확인에 반영되지 않을 수 있습니다.
                 </ScopeNotice>
               )}
 
@@ -661,12 +553,19 @@ export default function SalesInput({
               <S.SaveButton
                 type="button"
                 onClick={saveVariable}
-                disabled={isSaving}
+                disabled={isSavingVariable}
               >
                 변동비 저장/수정
               </S.SaveButton>
             </S.Panel>
           )}
+
+          <SectionSaveFeedback
+            label="고정비"
+            showSuccess={fixedSaveSuccess}
+            error={fixedSaveError}
+            onGoToCheck={onGoToCheck}
+          />
 
           <S.AccordionTitle
             type="button"
@@ -709,7 +608,7 @@ export default function SalesInput({
               <S.SaveButton
                 type="button"
                 onClick={saveFixed}
-                disabled={isSaving}
+                disabled={isSavingFixed}
               >
                 고정비 저장/수정
               </S.SaveButton>

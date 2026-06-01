@@ -1,43 +1,38 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import * as S from "../../style/SalesManage.Style";
 import {
   toWon,
   groupCalendarIntoWeeks,
-  sumWeekRow,
   buildCalendarDays,
   getWeekStart,
   monthAnchorDate,
-  spreadSalesForDay,
-  spreadVariableForDay,
-  type SalesEntry,
-  type VariableExpenseEntry,
 } from "./salesData";
+import {
+  sumDayRows,
+  sumWeeklyPeriodMaps,
+  periodProfit,
+  type PeriodTotals,
+} from "./salesCalendarDisplay";
 import {
   toYearMonth,
   useCalendar,
   useDaily,
   getSalesPeriod,
   getVariablePeriod,
-  financeKeys,
-} from "./salesApi";
-import { A_SCOPE, SCOPE_MESSAGES } from "./salesBackendScope";
+  salesQueryKeys,
+} from "../../api/sales_api";
+import { A_SCOPE } from "./salesBackendScope";
 import {
   MonthSummaryRow,
   MonthStatCard,
   MonthStatLabel,
   MonthStatValue,
-  ScopeNotice,
   WeekRowWrap,
   WeekSidePanel,
   WeekToggleBtn,
   WeekSummaryBox,
 } from "./salesManageUi";
-
-type Props = {
-  isActive: boolean;
-  refreshKey: number;
-};
 
 type DayRow = {
   date: string;
@@ -46,7 +41,7 @@ type DayRow = {
   dailyProfit: number;
 };
 
-export default function SalesCheck({ isActive, refreshKey }: Props) {
+export default function SalesCheck() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [monthIndex, setMonthIndex] = useState(now.getMonth());
@@ -56,9 +51,8 @@ export default function SalesCheck({ isActive, refreshKey }: Props) {
     isLoading,
     isError,
     error,
-    refetch: refetchCalendar,
     isFetching: fetchingCalendar,
-  } = useCalendar(yearMonth, true);
+  } = useCalendar(yearMonth);
   const [selectedDate, setSelectedDate] = useState(`${yearMonth}-01`);
   const [expandedWeekKey, setExpandedWeekKey] = useState<string | null>(null);
 
@@ -71,19 +65,8 @@ export default function SalesCheck({ isActive, refreshKey }: Props) {
     ? selectedDate
     : monthDays[0] ?? `${yearMonth}-01`;
 
-  const {
-    data: detail,
-    isLoading: loadingDetail,
-    refetch: refetchDaily,
-    isFetching: fetchingDetail,
-  } = useDaily(selected, true);
-
-  useEffect(() => {
-    if (!isActive) return;
-    void refetchCalendar();
-    void refetchDaily();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive, refreshKey, yearMonth, selected]);
+  const { data: detail, isLoading: loadingDetail, isFetching: fetchingDetail } =
+    useDaily(selected);
 
   const weekBaseDates = useMemo(() => {
     const set = new Set(monthDays.map((date) => getWeekStart(date)));
@@ -94,7 +77,7 @@ export default function SalesCheck({ isActive, refreshKey }: Props) {
 
   const weeklySalesQueries = useQueries({
     queries: weekBaseDates.map((baseDate) => ({
-      queryKey: financeKeys.salesPeriod("WEEKLY", baseDate),
+      queryKey: salesQueryKeys.salesPeriod("WEEKLY", baseDate),
       queryFn: () => getSalesPeriod("WEEKLY", baseDate),
       enabled: A_SCOPE.calendarWeeklyMonthly,
       staleTime: 0,
@@ -102,7 +85,7 @@ export default function SalesCheck({ isActive, refreshKey }: Props) {
   });
 
   const monthlySalesQuery = useQuery({
-    queryKey: financeKeys.salesPeriod("MONTHLY", monthBaseDate),
+    queryKey: salesQueryKeys.salesPeriod("MONTHLY", monthBaseDate),
     queryFn: () => getSalesPeriod("MONTHLY", monthBaseDate),
     enabled: A_SCOPE.calendarWeeklyMonthly,
     staleTime: 0,
@@ -110,7 +93,7 @@ export default function SalesCheck({ isActive, refreshKey }: Props) {
 
   const weeklyVariableQueries = useQueries({
     queries: weekBaseDates.map((baseDate) => ({
-      queryKey: financeKeys.varPeriod("WEEKLY", baseDate),
+      queryKey: salesQueryKeys.varPeriod("WEEKLY", baseDate),
       queryFn: () => getVariablePeriod("WEEKLY", baseDate),
       enabled: A_SCOPE.calendarWeeklyMonthly,
       staleTime: 0,
@@ -118,117 +101,82 @@ export default function SalesCheck({ isActive, refreshKey }: Props) {
   });
 
   const monthlyVariableQuery = useQuery({
-    queryKey: financeKeys.varPeriod("MONTHLY", monthBaseDate),
+    queryKey: salesQueryKeys.varPeriod("MONTHLY", monthBaseDate),
     queryFn: () => getVariablePeriod("MONTHLY", monthBaseDate),
     enabled: A_SCOPE.calendarWeeklyMonthly,
     staleTime: 0,
   });
 
-  const salesOverlayEntries = useMemo<SalesEntry[]>(() => {
-    if (!A_SCOPE.calendarWeeklyMonthly) return [];
-    const weeklyEntries = weeklySalesQueries
-      .map((query, index) => ({ query, baseDate: weekBaseDates[index] }))
-      .filter(({ query }) => (query.data?.totalAmount ?? 0) > 0)
-      .map(({ query, baseDate }) => ({
-        cycle: "weekly" as const,
-        date: query.data?.baseDate || baseDate,
-        amount: query.data?.totalAmount ?? 0,
-      }));
-
-    const monthlyAmount = monthlySalesQuery.data?.totalAmount ?? 0;
-    const monthlyEntries =
-      monthlyAmount > 0
-        ? [
-            {
-              cycle: "monthly" as const,
-              date: monthlySalesQuery.data?.baseDate || monthBaseDate,
-              amount: monthlyAmount,
-            },
-          ]
-        : [];
-
-    return [...weeklyEntries, ...monthlyEntries];
-  }, [weeklySalesQueries, monthlySalesQuery.data, monthBaseDate, weekBaseDates]);
-
-  const variableOverlayEntries = useMemo<VariableExpenseEntry[]>(() => {
-    if (!A_SCOPE.calendarWeeklyMonthly) return [];
-    const weeklyEntries = weeklyVariableQueries
-      .map((query, index) => ({ query, baseDate: weekBaseDates[index] }))
-      .filter(({ query }) => (query.data?.totalCost ?? 0) > 0)
-      .map(({ query, baseDate }) => ({
-        cycle: "weekly" as const,
-        date: query.data?.baseDate || baseDate,
-        staffSalary: query.data?.salaryCost ?? 0,
-        ingredientCost: query.data?.ingredientCost ?? 0,
-        total: query.data?.totalCost ?? 0,
-      }));
-
-    const monthlyTotal = monthlyVariableQuery.data?.totalCost ?? 0;
-    const monthlyEntries =
-      monthlyTotal > 0
-        ? [
-            {
-              cycle: "monthly" as const,
-              date: monthlyVariableQuery.data?.baseDate || monthBaseDate,
-              staffSalary: monthlyVariableQuery.data?.salaryCost ?? 0,
-              ingredientCost: monthlyVariableQuery.data?.ingredientCost ?? 0,
-              total: monthlyTotal,
-            },
-          ]
-        : [];
-
-    return [...weeklyEntries, ...monthlyEntries];
-  }, [weeklyVariableQueries, monthlyVariableQuery.data, monthBaseDate, weekBaseDates]);
-
-  const mergedDays = useMemo<DayRow[]>(() => {
+  /** 하루·시간별 — finance/calendar 일별 값만 (주·월 period는 일 칸에 넣지 않음) */
+  const calendarDays = useMemo<DayRow[]>(() => {
     const baseMap = new Map(days.map((d) => [d.date, d]));
     return monthDays.map((date) => {
       const base =
         baseMap.get(date) ||
         ({ date, dailySales: 0, dailyExpense: 0, dailyProfit: 0 } as DayRow);
-
-      const overlaySales = A_SCOPE.calendarWeeklyMonthly
-        ? spreadSalesForDay(date, salesOverlayEntries)
-        : 0;
-      const overlayExpense = A_SCOPE.calendarWeeklyMonthly
-        ? spreadVariableForDay(date, variableOverlayEntries)
-        : 0;
-
-      const dailySales = base.dailySales + overlaySales;
-      const dailyExpense = base.dailyExpense + overlayExpense;
       return {
         date,
-        dailySales,
-        dailyExpense,
-        dailyProfit: dailySales - dailyExpense,
+        dailySales: base.dailySales,
+        dailyExpense: base.dailyExpense,
+        dailyProfit: base.dailySales - base.dailyExpense,
       };
     });
-  }, [days, monthDays, salesOverlayEntries, variableOverlayEntries]);
+  }, [days, monthDays]);
+
+  const weeklyPeriodByWeekStart = useMemo(() => {
+    const map = new Map<string, { sales: number; expense: number }>();
+    if (!A_SCOPE.calendarWeeklyMonthly) return map;
+
+    weekBaseDates.forEach((baseDate, index) => {
+      const salesData = weeklySalesQueries[index]?.data;
+      const varData = weeklyVariableQueries[index]?.data;
+      const weekStart = getWeekStart(salesData?.baseDate || varData?.baseDate || baseDate);
+      map.set(weekStart, {
+        sales: salesData?.totalAmount ?? 0,
+        expense: varData?.totalCost ?? 0,
+      });
+    });
+    return map;
+  }, [weekBaseDates, weeklySalesQueries, weeklyVariableQueries]);
+
+  const monthlyPeriod = useMemo<PeriodTotals>(() => {
+    if (!A_SCOPE.calendarWeeklyMonthly) {
+      return periodProfit(0, 0);
+    }
+    const sales = monthlySalesQuery.data?.totalAmount ?? 0;
+    const expense = monthlyVariableQuery.data?.totalCost ?? 0;
+    return periodProfit(sales, expense);
+  }, [
+    monthlySalesQuery.data,
+    monthlyVariableQuery.data,
+  ]);
+
+  const monthTotals = useMemo(() => {
+    const daily = sumDayRows(calendarDays);
+    const weekly = sumWeeklyPeriodMaps(weeklyPeriodByWeekStart);
+    return periodProfit(
+      daily.sales + weekly.sales + monthlyPeriod.sales,
+      daily.expense + weekly.expense + monthlyPeriod.expense,
+    );
+  }, [calendarDays, weeklyPeriodByWeekStart, monthlyPeriod]);
 
   const dayMap = useMemo(
-    () => new Map(mergedDays.map((d) => [d.date, d])),
-    [mergedDays],
+    () => new Map(calendarDays.map((d) => [d.date, d])),
+    [calendarDays],
   );
 
   const firstWeekday = new Date(year, monthIndex, 1).getDay();
 
-  const monthTotals = useMemo(
-    () =>
-      mergedDays.reduce(
-        (acc, d) => ({
-          sales: acc.sales + d.dailySales,
-          expense: acc.expense + d.dailyExpense,
-          profit: acc.profit + d.dailyProfit,
-        }),
-        { sales: 0, expense: 0, profit: 0 },
-      ),
-    [mergedDays],
+  const weekRows = useMemo(
+    () => groupCalendarIntoWeeks(year, monthIndex, calendarDays),
+    [year, monthIndex, calendarDays],
   );
 
-  const weekRows = useMemo(
-    () => groupCalendarIntoWeeks(year, monthIndex, mergedDays),
-    [year, monthIndex, mergedDays],
-  );
+  const getWeekPeriodTotals = (weekStart: string): PeriodTotals => {
+    const row = weeklyPeriodByWeekStart.get(weekStart);
+    if (!row) return periodProfit(0, 0);
+    return periodProfit(row.sales, row.expense);
+  };
 
   const shift = (dy: number, dm: number) => {
     const b = new Date(year + dy, monthIndex + dm, 1);
@@ -251,27 +199,6 @@ export default function SalesCheck({ isActive, refreshKey }: Props) {
     weeklySalesQueries.some((q) => q.isFetching) ||
     weeklyVariableQueries.some((q) => q.isFetching);
 
-  const selectedSalesOverlay = A_SCOPE.calendarWeeklyMonthly
-    ? spreadSalesForDay(selected, salesOverlayEntries)
-    : 0;
-  const selectedVariableOverlay = A_SCOPE.calendarWeeklyMonthly
-    ? spreadVariableForDay(selected, variableOverlayEntries)
-    : 0;
-
-  const mergedDetail = useMemo(() => {
-    if (!detail) return null;
-    const totalSales = detail.totalSales + selectedSalesOverlay;
-    const totalExpense = detail.totalExpense + selectedVariableOverlay;
-    const variableCost = detail.variableCost + selectedVariableOverlay;
-    return {
-      ...detail,
-      totalSales,
-      totalExpense,
-      variableCost,
-      netProfit: totalSales - totalExpense,
-    };
-  }, [detail, selectedSalesOverlay, selectedVariableOverlay]);
-
   const renderDayCard = (d: DayRow) => (
     <S.DayCard
       key={d.date}
@@ -290,8 +217,7 @@ export default function SalesCheck({ isActive, refreshKey }: Props) {
     <>
       <S.Section>
         <S.SectionTitle>매출 확인</S.SectionTitle>
-        <ScopeNotice>{SCOPE_MESSAGES.calendarLimit}</ScopeNotice>
-        {(fetchingCalendar || fetchingDetail || overlayLoading) && isActive && (
+        {(fetchingCalendar || fetchingDetail || overlayLoading) && (
           <S.Value style={{ fontSize: 13, color: "#555" }}>
             데이터 동기화 중...
           </S.Value>
@@ -349,11 +275,13 @@ export default function SalesCheck({ isActive, refreshKey }: Props) {
 
             {A_SCOPE.checkWeekSummaryUi &&
               weekRows.map((row) => {
-                const weekSum = sumWeekRow(row.days);
+                const weekPeriod = getWeekPeriodTotals(row.weekStart);
                 const expanded = expandedWeekKey === row.weekKey;
                 const weekIndex = weekRows.findIndex((w) => w.weekKey === row.weekKey);
                 const weekLabel = weekOrdinalLabel[weekIndex] ?? `${weekIndex + 1}째주`;
-                const weekDates = row.days.filter((d): d is DayRow => d !== null).map((d) => d.date);
+                const weekDates = row.days
+                  .filter((d): d is DayRow => d !== null)
+                  .map((d) => d.date);
                 const rangeStart = weekDates[0] ?? "";
                 const rangeEnd = weekDates[weekDates.length - 1] ?? "";
                 const rangeLabel =
@@ -373,9 +301,9 @@ export default function SalesCheck({ isActive, refreshKey }: Props) {
                     </WeekSidePanel>
                     {expanded ? (
                       <WeekSummaryBox>
-                        <div>{rangeLabel}의 매출: {toWon(weekSum.sales)}원</div>
-                        <div>{rangeLabel}의 지출: {toWon(weekSum.expense)}원</div>
-                        <div>{rangeLabel}의 순이익: {toWon(weekSum.profit)}원</div>
+                        <div>{rangeLabel}의 매출: {toWon(weekPeriod.sales)}원</div>
+                        <div>{rangeLabel}의 지출: {toWon(weekPeriod.expense)}원</div>
+                        <div>{rangeLabel}의 순이익: {toWon(weekPeriod.profit)}원</div>
                       </WeekSummaryBox>
                     ) : (
                       <S.CalendarGrid>
@@ -413,39 +341,36 @@ export default function SalesCheck({ isActive, refreshKey }: Props) {
       </S.Section>
       <S.Section>
         <S.SectionTitle>{`${Number(selected.slice(5, 7))}월 ${Number(selected.slice(8, 10))}일 상세`}</S.SectionTitle>
-        <ScopeNotice>
-          일별 상세는 finance/daily + period(한주/한달) 오버레이 합산으로 표시됩니다.
-        </ScopeNotice>
         {loadingDetail && <S.Value>불러오는 중...</S.Value>}
-        {mergedDetail && (
+        {detail && (
           <S.DetailGrid>
             <S.Panel>
               <S.PanelTitle>상세 매출</S.PanelTitle>
               <S.Row>
                 <S.Label>총 매출</S.Label>
-                <S.Value>{toWon(mergedDetail.totalSales)}원</S.Value>
+                <S.Value>{toWon(detail.totalSales)}원</S.Value>
               </S.Row>
               <S.Row>
                 <S.Label>변동비</S.Label>
-                <S.Value>{toWon(mergedDetail.variableCost)}원</S.Value>
+                <S.Value>{toWon(detail.variableCost)}원</S.Value>
               </S.Row>
               <S.Row>
                 <S.Label>고정비</S.Label>
-                <S.Value>{toWon(mergedDetail.fixedCost)}원</S.Value>
+                <S.Value>{toWon(detail.fixedCost)}원</S.Value>
               </S.Row>
               <S.Row>
                 <S.Label>총 지출</S.Label>
-                <S.Value>{toWon(mergedDetail.totalExpense)}원</S.Value>
+                <S.Value>{toWon(detail.totalExpense)}원</S.Value>
               </S.Row>
               <S.Row>
                 <S.Label>순이익</S.Label>
-                <S.Value>{toWon(mergedDetail.netProfit)}원</S.Value>
+                <S.Value>{toWon(detail.netProfit)}원</S.Value>
               </S.Row>
             </S.Panel>
             <S.Panel>
               <S.PanelTitle>시간대 매출</S.PanelTitle>
-              {!mergedDetail.hourlySales.length && <S.Value>데이터 없음</S.Value>}
-              {mergedDetail.hourlySales.map((h) => (
+              {!detail.hourlySales.length && <S.Value>데이터 없음</S.Value>}
+              {detail.hourlySales.map((h) => (
                 <S.Row key={h.hour}>
                   <S.Label>{h.hour}</S.Label>
                   <S.Value>{toWon(h.amount)}원</S.Value>
