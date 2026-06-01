@@ -3,8 +3,7 @@ import type { ExpenseCycle, SalesCycle } from "./salesData";
 /**
  * 백엔드 현재 지원 범위 + A주석 일괄 해제용 플래그
  *
- * 현재 설정은 "2번 방식"(프론트 합산 오버레이)입니다.
- * finance/calendar 에 WEEKLY/MONTHLY가 없어도 period API 값을 일별로 분배해 표시합니다.
+ * 매출 확인 표시: DAILY/HOURLY → 일별 칸, WEEKLY → 주간 요약, MONTHLY → 월 상단 합계
  */
 export const A_SCOPE = {
   /** POST/GET period — 하루·한주·한달·시간별 매출 입력·조회 */
@@ -15,10 +14,7 @@ export const A_SCOPE = {
   fixedCostApi: true,
   /** finance/calendar·daily — 일·시간별 집계 (매출 확인 캘린더) */
   financeDailyHourlyCalendar: true,
-  /**
-   * 프론트 오버레이로 WEEKLY/MONTHLY를 캘린더에 반영
-   * false로 내리면 DAILY/HOURLY만 캘린더 반영
-   */
+  /** period API로 WEEKLY/MONTHLY를 주간·월 합계 영역에 반영 */
   calendarWeeklyMonthly: true,
   /** 매출 확인 — 주간 합계 사이드 버튼 UI */
   checkWeekSummaryUi: true,
@@ -39,8 +35,9 @@ export function reflectsOnSalesCheck(
 
 export const SCOPE_MESSAGES = {
   calendarLimit:
-    "매출 확인 캘린더는 period API(한주/한달) 오버레이를 포함해 표시됩니다.",
+    "매출 확인: 하루·시간별은 일별 칸, 한주는 주간 요약, 한달은 월 상단 합계에 표시됩니다.",
   savedPeriodOnly:
     "저장되었습니다. 주기별 데이터는 period API 기준으로 반영됩니다.",
-  savedCalendar: "저장되었습니다. 매출 확인 캘린더에 반영됩니다.",
+  savedCalendar:
+    "저장되었습니다. 매출 확인에 반영됩니다(한주: 주간 요약, 한달: 월 합계).",
 } as const;

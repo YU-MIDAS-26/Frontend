@@ -1,40 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import * as S from "../../style/SalesManage.Style";
-import { toYearMonth, useAiInsight } from "./salesApi";
-import { A_SCOPE } from "./salesBackendScope";
-import { ScopeNotice } from "./salesManageUi";
+import { toYearMonth, useAiInsight } from "../../api/sales_api";
 
-type Props = {
-  isActive: boolean;
-  refreshKey: number;
-};
-
-export default function SalesReport({ isActive, refreshKey }: Props) {
+export default function SalesReport() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [monthIndex, setMonthIndex] = useState(now.getMonth());
   const yearMonth = toYearMonth(year, monthIndex);
-  const { data, isLoading, isError, error, refetch, isFetching } = useAiInsight(
-    yearMonth,
-    true,
-  );
-
-  useEffect(() => {
-    if (!isActive) return;
-    void refetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isActive, refreshKey, yearMonth]);
+  const { data, isLoading, isError, error, isFetching } = useAiInsight(yearMonth);
 
   return (
     <>
       <S.Section>
         <S.SectionTitle>보고서 확인</S.SectionTitle>
-        {A_SCOPE.aiInsightReport && (
-          <ScopeNotice>
-            GET /api/finance/ai-insight — 당월 데이터 기반 AI 요약 (본문 언어는 서버 응답
-            기준)
-          </ScopeNotice>
-        )}
         <S.CalendarHeader>
           <S.CalendarTitle>
             {year}년 {monthIndex + 1}월 AI 경영 보고서
@@ -62,10 +40,9 @@ export default function SalesReport({ isActive, refreshKey }: Props) {
             </S.NavButton>
           </S.NavButtons>
         </S.CalendarHeader>
-        {isFetching && isActive && (
+        {isFetching && (
           <S.Value style={{ fontSize: 13, color: "#555" }}>보고서 갱신 중...</S.Value>
         )}
-        {data?.coreSummary && <S.SubTitle>{data.coreSummary}</S.SubTitle>}
       </S.Section>
       {isLoading && (
         <S.Section>
@@ -80,21 +57,41 @@ export default function SalesReport({ isActive, refreshKey }: Props) {
       {data && (
         <S.ReportGrid>
           <S.Card>
+            {data.coreSummary.trim() && (
+              <>
+                <S.CardTitle>핵심 요약</S.CardTitle>
+                <S.Highlight>{data.coreSummary}</S.Highlight>
+              </>
+            )}
             <S.CardTitle>한눈에 볼 수 있는 추천내용</S.CardTitle>
-            <S.List>
-              {data.recommendations.map((t) => (
-                <li key={t}>{t}</li>
-              ))}
-            </S.List>
-            <S.Highlight>{data.financeSummary}</S.Highlight>
+            {data.recommendations.length > 0 ? (
+              <S.List>
+                {data.recommendations.map((t) => (
+                  <li key={t}>{t}</li>
+                ))}
+              </S.List>
+            ) : (
+              <S.Value>추천 내용이 없습니다.</S.Value>
+            )}
+            {data.financeSummary.trim() && (
+              <S.Highlight>{data.financeSummary}</S.Highlight>
+            )}
           </S.Card>
           <S.Card>
             <S.CardTitle>데이터 기반 요약</S.CardTitle>
-            <S.List>
-              <li>{data.salesFlow}</li>
-              <li>{data.additionalInsight}</li>
-            </S.List>
-            <S.Highlight>{data.coreSummary}</S.Highlight>
+            {data.salesFlow.trim() ? (
+              <S.List>
+                <li>{data.salesFlow}</li>
+              </S.List>
+            ) : (
+              <S.Value>요약 데이터가 없습니다.</S.Value>
+            )}
+            {data.additionalInsight.trim() && (
+              <>
+                <S.CardTitle style={{ marginTop: 16 }}>추가 인사이트</S.CardTitle>
+                <S.Highlight>{data.additionalInsight}</S.Highlight>
+              </>
+            )}
           </S.Card>
         </S.ReportGrid>
       )}
