@@ -6,7 +6,7 @@ import router from "./Router.tsx";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
 import ResetStyle from "./style/ResetStyle.tsx";
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

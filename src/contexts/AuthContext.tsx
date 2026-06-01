@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import type { ReactNode } from "react";
+import { queryClient } from "../main";
 
 type AuthContextValue = {
   isLoggedIn: boolean;
@@ -25,13 +26,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(
     () => localStorage.getItem("isLoggedIn") === "true",
   );
-  const [userId, setUserId] = useState<string | null>(
-    () => localStorage.getItem("userId"),
+  const [userId, setUserId] = useState<string | null>(() =>
+    localStorage.getItem("userId"),
   );
 
   const login = useCallback((nextUserId: string) => {
-    // TODO: 백엔드 연동 시 로그인 응답(access token, refresh token, user info)을
-    // 여기에서 저장하도록 바꾸면 됩니다.
     localStorage.setItem("isLoggedIn", "true");
     localStorage.setItem("userId", nextUserId);
     setIsLoggedIn(true);
@@ -39,10 +38,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const logout = useCallback(() => {
-    // TODO: 백엔드 연동 시 로그아웃 API 호출, 토큰 폐기, 세션 정리 로직을
-    // 여기에서 함께 처리하면 됩니다.
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("userId");
+
+    localStorage.removeItem("accessToken");
+
+    queryClient.clear();
+
     setIsLoggedIn(false);
     setUserId(null);
   }, []);
@@ -79,6 +81,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
 
