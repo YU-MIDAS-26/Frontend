@@ -1,6 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import * as S from "../../style/SalesManage.Style";
-import type { SalesCycle, ExpenseCycle, FixedExpenseMap, VariableExpenseEntry } from "./salesData";
+import { SyncBanner, ScopeNotice } from "./salesManageUi";
+import {
+  reflectsOnSalesCheck,
+  SCOPE_MESSAGES,
+  A_SCOPE,
+} from "./salesBackendScope";
+import type { SalesCycle, ExpenseCycle } from "./salesData";
 import {
   HOUR_SLOTS,
   toWon,
@@ -11,24 +17,23 @@ import {
   buildCalendarDays,
   monthAnchorDate,
   sameWeek,
-  entryKey,
-  VAR_KEY,
-  parse,
 } from "./salesData";
 import {
   toYearMonth,
-  getDaily,
   buildHourlySales,
   toBackendCycle,
   usePostSales,
   usePostVariable,
   usePostFixed,
+  useSalesPeriod,
+  useVariablePeriod,
+  useFixedCost,
 } from "./salesApi";
 
 interface Props {
-  fixedMap: FixedExpenseMap;
   autoSalary: number;
-  onUpdateFixed: (map: FixedExpenseMap) => void;
+  onFinanceUpdated?: () => void;
+  onGoToCheck?: () => void;
 }
 
 type CyclePickerProps = {
@@ -184,8 +189,8 @@ function CycleDatePicker({
   );
 }
 
-const resolveSaleDate = (
-  cycle: SalesCycle,
+const resolveBaseDate = (
+  cycle: SalesCycle | ExpenseCycle,
   anchorDate: string,
   selectedMonth: string,
 ) => {
@@ -198,7 +203,11 @@ const resolveSaleDate = (
   return anchorDate;
 };
 
-export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Props) {
+export default function SalesInput({
+  autoSalary,
+  onFinanceUpdated,
+  onGoToCheck,
+}: Props) {
   const now = new Date();
   const [salesOpen, setSalesOpen] = useState(true);
   const [expenseOpen, setExpenseOpen] = useState(true);
@@ -206,12 +215,17 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
   const [fixedOpen, setFixedOpen] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [showSyncBanner, setShowSyncBanner] = useState(false);
 
   const [salesCycle, setSalesCycle] = useState<SalesCycle>("daily");
   const [salesAnchorDate, setSalesAnchorDate] = useState(today());
-  const [salesSelectedMonth, setSalesSelectedMonth] = useState(today().slice(0, 7));
+  const [salesSelectedMonth, setSalesSelectedMonth] = useState(
+    today().slice(0, 7),
+  );
   const [salesCalendarYear, setSalesCalendarYear] = useState(now.getFullYear());
-  const [salesCalendarMonthIndex, setSalesCalendarMonthIndex] = useState(now.getMonth());
+  const [salesCalendarMonthIndex, setSalesCalendarMonthIndex] = useState(
+    now.getMonth(),
+  );
   const [salesAmountInput, setSalesAmountInput] = useState("");
   const [hourlyInputs, setHourlyInputs] = useState<string[]>(
     Array.from({ length: HOUR_SLOTS.length }, () => ""),
@@ -219,9 +233,15 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
 
   const [expenseCycle, setExpenseCycle] = useState<ExpenseCycle>("daily");
   const [expenseAnchorDate, setExpenseAnchorDate] = useState(today());
-  const [expenseSelectedMonth, setExpenseSelectedMonth] = useState(today().slice(0, 7));
-  const [expenseCalendarYear, setExpenseCalendarYear] = useState(now.getFullYear());
-  const [expenseCalendarMonthIndex, setExpenseCalendarMonthIndex] = useState(now.getMonth());
+  const [expenseSelectedMonth, setExpenseSelectedMonth] = useState(
+    today().slice(0, 7),
+  );
+  const [expenseCalendarYear, setExpenseCalendarYear] = useState(
+    now.getFullYear(),
+  );
+  const [expenseCalendarMonthIndex, setExpenseCalendarMonthIndex] = useState(
+    now.getMonth(),
+  );
   const [staffSalaryInput, setStaffSalaryInput] = useState(
     autoSalary > 0 ? String(autoSalary) : "",
   );
@@ -234,20 +254,32 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
   const createVariableMutation = usePostVariable();
   const saveFixedMutation = usePostFixed();
 
-  const salesDate = useMemo(
-    () => resolveSaleDate(salesCycle, salesAnchorDate, salesSelectedMonth),
+  const salesBaseDate = useMemo(
+    () => resolveBaseDate(salesCycle, salesAnchorDate, salesSelectedMonth),
     [salesCycle, salesAnchorDate, salesSelectedMonth],
   );
 
-  const expenseDate = useMemo(() => {
-    if (expenseCycle === "monthly") {
-      return monthAnchorDate(expenseSelectedMonth);
-    }
-    if (expenseCycle === "weekly") {
-      return getWeekStart(expenseAnchorDate);
-    }
-    return expenseAnchorDate;
-  }, [expenseCycle, expenseAnchorDate, expenseSelectedMonth]);
+  const expenseBaseDate = useMemo(
+    () =>
+      resolveBaseDate(expenseCycle, expenseAnchorDate, expenseSelectedMonth),
+    [expenseCycle, expenseAnchorDate, expenseSelectedMonth],
+  );
+
+  const {
+    data: salesPeriod,
+    refetch: refetchSales,
+    isFetching: loadingSalesPeriod,
+  } = useSalesPeriod(salesCycle, salesBaseDate);
+  const {
+    data: variablePeriod,
+    refetch: refetchVariable,
+    isFetching: loadingVariablePeriod,
+  } = useVariablePeriod(expenseCycle, expenseBaseDate);
+  const {
+    data: fixedCost,
+    refetch: refetchFixed,
+    isFetching: loadingFixedCost,
+  } = useFixedCost(fixedMonth);
 
   useEffect(() => {
     if (autoSalary > 0) {
@@ -256,61 +288,50 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
   }, [autoSalary]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    getDaily(salesDate)
-      .then((detail) => {
-        if (cancelled) return;
-        if (salesCycle === "hourly" && detail.hourlySales.length) {
-          setHourlyInputs(
-            HOUR_SLOTS.map((slot) => {
-              const h = detail.hourlySales.find((x) => x.hour === slot);
-              return h && h.amount > 0 ? String(h.amount) : "";
-            }),
-          );
-          setSalesAmountInput("");
-        } else {
-          setSalesAmountInput(detail.totalSales > 0 ? String(detail.totalSales) : "");
-          setHourlyInputs(Array.from({ length: HOUR_SLOTS.length }, () => ""));
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setSalesAmountInput("");
-          setHourlyInputs(Array.from({ length: HOUR_SLOTS.length }, () => ""));
-        }
-      });
-    return () => { cancelled = true; };
-  }, [salesDate, salesCycle]);
-
-  useEffect(() => {
-    const varEntries = parse<VariableExpenseEntry[]>(localStorage.getItem(VAR_KEY), []);
-    const cached = varEntries.find((e) => e.date === expenseDate && e.cycle === expenseCycle);
-    if (cached) {
-      setStaffSalaryInput(cached.staffSalary > 0 ? String(cached.staffSalary) : "");
-      setIngredientCostInput(cached.ingredientCost > 0 ? String(cached.ingredientCost) : "");
+    if (!salesPeriod) return;
+    if (salesCycle === "hourly") {
+      setHourlyInputs(
+        HOUR_SLOTS.map((slot) => {
+          const h = salesPeriod.hourlySales.find((x) => x.hour === slot);
+          return h && h.amount > 0 ? String(h.amount) : "";
+        }),
+      );
+      setSalesAmountInput("");
       return;
     }
-    getDaily(expenseDate)
-      .then((detail) => {
-        if (detail.variableCost > 0) {
-          setIngredientCostInput(String(detail.variableCost));
-        } else {
-          setIngredientCostInput("");
-        }
-        if (!(autoSalary > 0)) setStaffSalaryInput("");
-      })
-      .catch(() => {
-        setIngredientCostInput("");
-        if (!(autoSalary > 0)) setStaffSalaryInput("");
-      });
-  }, [expenseDate, expenseCycle, autoSalary]);
+    setSalesAmountInput(
+      salesPeriod.totalAmount > 0 ? String(salesPeriod.totalAmount) : "",
+    );
+    setHourlyInputs(Array.from({ length: HOUR_SLOTS.length }, () => ""));
+  }, [salesPeriod, salesCycle, salesBaseDate]);
 
   useEffect(() => {
-    const fixed = fixedMap[fixedMonth];
-    setRentInput(fixed?.rent ? String(fixed.rent) : "");
-    setUtilitiesInput(fixed?.utilities ? String(fixed.utilities) : "");
-  }, [fixedMap, fixedMonth]);
+    if (!variablePeriod) return;
+    setIngredientCostInput(
+      variablePeriod.ingredientCost > 0
+        ? String(variablePeriod.ingredientCost)
+        : "",
+    );
+    if (autoSalary > 0) {
+      setStaffSalaryInput(String(autoSalary));
+    } else {
+      setStaffSalaryInput(
+        variablePeriod.salaryCost > 0 ? String(variablePeriod.salaryCost) : "",
+      );
+    }
+  }, [variablePeriod, autoSalary, expenseBaseDate, expenseCycle]);
+
+  useEffect(() => {
+    if (!fixedCost) {
+      setRentInput("");
+      setUtilitiesInput("");
+      return;
+    }
+    setRentInput(fixedCost.rent > 0 ? String(fixedCost.rent) : "");
+    setUtilitiesInput(
+      fixedCost.utilityCost > 0 ? String(fixedCost.utilityCost) : "",
+    );
+  }, [fixedCost, fixedMonth]);
 
   const salesTotalInput = useMemo(
     () =>
@@ -328,19 +349,31 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
     [rentInput, utilitiesInput],
   );
 
+  const notifyFinanceUpdated = async () => {
+    onFinanceUpdated?.();
+    setShowSyncBanner(true);
+  };
+
   const saveSales = async () => {
     setSaveMessage("");
     setSaveError("");
+    setShowSyncBanner(false);
 
     try {
       await createSalesMutation.mutateAsync({
-        saleDate: salesDate,
+        saleDate: salesBaseDate,
         cycleType: toBackendCycle(salesCycle),
         totalAmount: salesTotalInput,
         hourlySales:
           salesCycle === "hourly" ? buildHourlySales(hourlyInputs) : undefined,
       });
-      setSaveMessage("매출이 저장되었습니다.");
+      await refetchSales();
+      await notifyFinanceUpdated();
+      setSaveMessage(
+        reflectsOnSalesCheck(salesCycle)
+          ? `매출이 ${SCOPE_MESSAGES.savedCalendar}`
+          : `매출이 ${SCOPE_MESSAGES.savedPeriodOnly}`,
+      );
     } catch (error) {
       setSaveError(
         error instanceof Error ? error.message : "매출 저장에 실패했습니다.",
@@ -351,30 +384,22 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
   const saveVariable = async () => {
     setSaveMessage("");
     setSaveError("");
+    setShowSyncBanner(false);
 
     try {
       await createVariableMutation.mutateAsync({
-        costDate: expenseDate,
+        costDate: expenseBaseDate,
         cycleType: toBackendCycle(expenseCycle),
         ingredientCost: toNumber(ingredientCostInput),
         salaryCost: toNumber(staffSalaryInput),
       });
-      const varEntries = parse<VariableExpenseEntry[]>(localStorage.getItem(VAR_KEY), []);
-      const next: VariableExpenseEntry = {
-        date: expenseDate,
-        cycle: expenseCycle,
-        staffSalary: toNumber(staffSalaryInput),
-        ingredientCost: toNumber(ingredientCostInput),
-        total: variableTotalInput,
-      };
-      localStorage.setItem(
-        VAR_KEY,
-        JSON.stringify([
-          ...varEntries.filter((e) => entryKey(e.cycle, e.date) !== entryKey(expenseCycle, expenseDate)),
-          next,
-        ]),
+      await refetchVariable();
+      await notifyFinanceUpdated();
+      setSaveMessage(
+        reflectsOnSalesCheck(expenseCycle)
+          ? `변동비가 ${SCOPE_MESSAGES.savedCalendar}`
+          : `변동비가 ${SCOPE_MESSAGES.savedPeriodOnly}`,
       );
-      setSaveMessage("변동비가 저장되었습니다.");
     } catch (error) {
       setSaveError(
         error instanceof Error ? error.message : "변동비 저장에 실패했습니다.",
@@ -385,25 +410,19 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
   const saveFixed = async () => {
     setSaveMessage("");
     setSaveError("");
-
-    const nextFixed = {
-      rent: toNumber(rentInput),
-      utilities: toNumber(utilitiesInput),
-      total: fixedTotalInput,
-    };
+    setShowSyncBanner(false);
 
     try {
       await saveFixedMutation.mutateAsync({
         targetYearMonth: fixedMonth,
-        rent: nextFixed.rent,
-        utilityCost: nextFixed.utilities,
+        rent: toNumber(rentInput),
+        utilityCost: toNumber(utilitiesInput),
       });
-
-      onUpdateFixed({
-        ...fixedMap,
-        [fixedMonth]: nextFixed,
-      });
-      setSaveMessage("고정비가 저장되었습니다.");
+      await refetchFixed();
+      await notifyFinanceUpdated();
+      setSaveMessage(
+        `고정비가 저장되었습니다. ${A_SCOPE.financeDailyHourlyCalendar ? "매출 확인(월 지출·순이익)에 반영됩니다." : ""}`,
+      );
     } catch (error) {
       setSaveError(
         error instanceof Error ? error.message : "고정비 저장에 실패했습니다.",
@@ -416,12 +435,33 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
     createVariableMutation.isPending ||
     saveFixedMutation.isPending;
 
+  const periodRangeLabel = (start?: string, end?: string) =>
+    start && end ? `${start} ~ ${end}` : "-";
+
   return (
     <S.Section>
       <S.SectionTitle>매출 입력</S.SectionTitle>
+      <ScopeNotice>
+        저장·조회: POST/GET period API (하루·한주·한달·시간 / 변동비·고정비). 매출 확인
+        캘린더는 하루·시간별 집계만 표시됩니다.
+      </ScopeNotice>
 
       {saveMessage && <S.Value>{saveMessage}</S.Value>}
       {saveError && <S.Value>{saveError}</S.Value>}
+      {showSyncBanner && (
+        <SyncBanner>
+          저장한 내용이 서버에 반영되었습니다.
+          {onGoToCheck && (
+            <S.NavButton
+              type="button"
+              style={{ marginLeft: 8, padding: "4px 10px", fontSize: 12 }}
+              onClick={onGoToCheck}
+            >
+              매출 확인으로 이동
+            </S.NavButton>
+          )}
+        </SyncBanner>
+      )}
 
       <S.AccordionTitle
         type="button"
@@ -433,17 +473,25 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
       {salesOpen && (
         <S.Panel>
           <S.Row>
-            <S.Label>입력 주기</S.Label>
+            <S.Label>반영 주기</S.Label>
             <S.Select
               value={salesCycle}
               onChange={(e) => setSalesCycle(e.target.value as SalesCycle)}
             >
               <option value="daily">하루</option>
+              <option value="hourly">특정 시간</option>
+              {/* A주석 BEGIN: 한주·한달 — period API 지원, 캘린더 미반영 시에도 입력 가능 */}
               <option value="weekly">한주</option>
               <option value="monthly">한달</option>
-              <option value="hourly">특정 시간</option>
+              {/* A주석 END: 한주·한달 */}
             </S.Select>
           </S.Row>
+          {!reflectsOnSalesCheck(salesCycle) && (
+            <ScopeNotice $variant="warn">
+              「한주」「한달」은 이 화면에서 저장·조회됩니다. 매출 확인 캘린더에는 나타나지
+              않을 수 있습니다.
+            </ScopeNotice>
+          )}
 
           <CycleDatePicker
             cycle={salesCycle}
@@ -457,14 +505,18 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
             onCalendarMonthIndexChange={setSalesCalendarMonthIndex}
             hint={
               salesCycle === "daily"
-                ? "입력할 하루 날짜를 선택하세요."
+                ? "반영할 하루 날짜를 선택하세요."
                 : salesCycle === "weekly"
-                  ? "캘린더에서 주간 매출을 입력할 주를 선택하세요."
+                  ? "캘린더에서 주간 매출을 반영할 주를 선택하세요."
                   : salesCycle === "monthly"
-                    ? "캘린더에서 월간 매출을 입력할 달을 선택하세요."
-                    : "시간대별 매출을 입력할 날짜를 선택하세요."
+                    ? "캘린더에서 월간 매출을 반영할 달을 선택하세요."
+                    : "시간대별 매출을 반영할 날짜를 선택하세요."
             }
           />
+
+          {loadingSalesPeriod && (
+            <S.PickerHint>서버에서 매출 데이터를 불러오는 중...</S.PickerHint>
+          )}
 
           {salesCycle === "hourly" ? (
             HOUR_SLOTS.map((slot, idx) => (
@@ -491,7 +543,16 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
           )}
           <S.Row>
             <S.Label>저장 기준일</S.Label>
-            <S.Value>{salesDate}</S.Value>
+            <S.Value>{salesBaseDate}</S.Value>
+          </S.Row>
+          <S.Row>
+            <S.Label>적용 기간</S.Label>
+            <S.Value>
+              {periodRangeLabel(
+                salesPeriod?.periodStartDate,
+                salesPeriod?.periodEndDate,
+              )}
+            </S.Value>
           </S.Row>
           <S.Row>
             <S.Label>저장 예정 금액</S.Label>
@@ -530,10 +591,18 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
                   }
                 >
                   <option value="daily">하루</option>
+                  {/* A주석 BEGIN: 변동비 한주·한달 */}
                   <option value="weekly">한주</option>
                   <option value="monthly">한달</option>
+                  {/* A주석 END: 변동비 한주·한달 */}
                 </S.Select>
               </S.Row>
+              {!reflectsOnSalesCheck(expenseCycle) && (
+                <ScopeNotice $variant="warn">
+                  「한주」「한달」 변동비는 period API로 저장·조회됩니다. 매출 확인
+                  캘린더 일별 합계와 다를 수 있습니다.
+                </ScopeNotice>
+              )}
 
               <CycleDatePicker
                 cycle={expenseCycle}
@@ -554,6 +623,10 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
                 }
               />
 
+              {loadingVariablePeriod && (
+                <S.PickerHint>서버에서 변동비 데이터를 불러오는 중...</S.PickerHint>
+              )}
+
               <S.Row>
                 <S.Label>직원 월급(자동값 연동)</S.Label>
                 <S.Input
@@ -570,13 +643,26 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
               </S.Row>
               <S.Row>
                 <S.Label>저장 기준일</S.Label>
-                <S.Value>{expenseDate}</S.Value>
+                <S.Value>{expenseBaseDate}</S.Value>
+              </S.Row>
+              <S.Row>
+                <S.Label>적용 기간</S.Label>
+                <S.Value>
+                  {periodRangeLabel(
+                    variablePeriod?.periodStartDate,
+                    variablePeriod?.periodEndDate,
+                  )}
+                </S.Value>
               </S.Row>
               <S.Row>
                 <S.Label>변동비 합계</S.Label>
                 <S.Value>{toWon(variableTotalInput)}원</S.Value>
               </S.Row>
-              <S.SaveButton type="button" onClick={saveVariable} disabled={isSaving}>
+              <S.SaveButton
+                type="button"
+                onClick={saveVariable}
+                disabled={isSaving}
+              >
                 변동비 저장/수정
               </S.SaveButton>
             </S.Panel>
@@ -599,6 +685,9 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
                   onChange={(e) => setFixedMonth(e.target.value)}
                 />
               </S.Row>
+              {loadingFixedCost && (
+                <S.PickerHint>서버에서 고정비 데이터를 불러오는 중...</S.PickerHint>
+              )}
               <S.Row>
                 <S.Label>임대료</S.Label>
                 <S.Input
@@ -617,7 +706,11 @@ export default function SalesInput({ fixedMap, autoSalary, onUpdateFixed }: Prop
                 <S.Label>고정비 합계</S.Label>
                 <S.Value>{toWon(fixedTotalInput)}원</S.Value>
               </S.Row>
-              <S.SaveButton type="button" onClick={saveFixed} disabled={isSaving}>
+              <S.SaveButton
+                type="button"
+                onClick={saveFixed}
+                disabled={isSaving}
+              >
                 고정비 저장/수정
               </S.SaveButton>
             </S.Panel>
