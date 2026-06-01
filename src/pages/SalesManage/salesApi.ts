@@ -1,10 +1,23 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+/**
+ * 매출 관리 API (백엔드 연동)
+ * - 저장: POST sales, costs/variable, costs/fixed
+ * - 입력 조회: GET sales/period, costs/variable/period, costs/fixed
+ * - 매출 확인: GET finance/calendar, finance/daily (DAILY·HOURLY 집계)
+ * - 보고서: GET finance/ai-insight
+ * 범위 플래그: salesBackendScope.ts (A주석)
+ */
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { apiClient } from "../../api/client";
 import type { ExpenseCycle, SalesCycle } from "./salesData";
-import { HOUR_SLOTS } from "./salesData";
+import { HOUR_SLOTS, yearMonthsForBaseDate } from "./salesData";
 
 type ApiResponse<T> = { status: string; message: string; data: T };
-type BackendCycle = "MONTHLY" | "WEEKLY" | "DAILY" | "HOURLY";
+export type BackendCycle = "MONTHLY" | "WEEKLY" | "DAILY" | "HOURLY";
 
 export type CalendarDay = {
   date: string;
@@ -27,6 +40,29 @@ export type AiInsight = {
   salesFlow: string;
   additionalInsight: string;
 };
+export type PeriodSales = {
+  cycleType: BackendCycle;
+  baseDate: string;
+  periodStartDate: string;
+  periodEndDate: string;
+  totalAmount: number;
+  hourlySales: { hour: string; amount: number }[];
+};
+export type PeriodVariable = {
+  cycleType: BackendCycle;
+  baseDate: string;
+  periodStartDate: string;
+  periodEndDate: string;
+  ingredientCost: number;
+  salaryCost: number;
+  totalCost: number;
+};
+export type FixedCost = {
+  targetYearMonth: string;
+  rent: number;
+  utilityCost: number;
+  totalCost: number;
+};
 
 const unwrap = <T,>(r: { data: ApiResponse<T> }) => r.data.data;
 export const toYearMonth = (y: number, m: number) =>
@@ -47,6 +83,25 @@ export const getDaily = (date: string) =>
 export const getAiInsight = (yearMonth: string) =>
   apiClient
     .get<ApiResponse<AiInsight>>("/api/finance/ai-insight", { params: { yearMonth } })
+    .then(unwrap);
+
+export const getSalesPeriod = (cycleType: BackendCycle, baseDate: string) =>
+  apiClient
+    .get<ApiResponse<PeriodSales>>("/api/sales/period", {
+      params: { cycleType, baseDate },
+    })
+    .then(unwrap);
+
+export const getVariablePeriod = (cycleType: BackendCycle, baseDate: string) =>
+  apiClient
+    .get<ApiResponse<PeriodVariable>>("/api/costs/variable/period", {
+      params: { cycleType, baseDate },
+    })
+    .then(unwrap);
+
+export const getFixedCost = (yearMonth: string) =>
+  apiClient
+    .get<ApiResponse<FixedCost>>("/api/costs/fixed", { params: { yearMonth } })
     .then(unwrap);
 
 export const postSales = (body: {
@@ -75,29 +130,146 @@ export const buildHourlySales = (inputs: string[]) =>
     amount: Number(inputs[i]?.replace(/,/g, "") || 0) || 0,
   }));
 
-const keys = {
+export const financeKeys = {
   cal: (ym: string) => ["sm-cal", ym] as const,
   daily: (d: string) => ["sm-daily", d] as const,
   ai: (ym: string) => ["sm-ai", ym] as const,
+  salesPeriod: (cycle: BackendCycle, base: string) =>
+    ["sm-sales-period", cycle, base] as const,
+  varPeriod: (cycle: BackendCycle, base: string) =>
+    ["sm-var-period", cycle, base] as const,
+  fixed: (ym: string) => ["sm-fixed", ym] as const,
 };
 
-export const useCalendar = (yearMonth: string) =>
-  useQuery({ queryKey: keys.cal(yearMonth), queryFn: () => getCalendar(yearMonth) });
+const queryDefaults = {
+  staleTime: 0,
+  gcTime: 5 * 60 * 1000,
+};
 
-export const useDaily = (date: string) =>
-  useQuery({ queryKey: keys.daily(date), queryFn: () => getDaily(date), enabled: !!date });
+/** 저장 후 매출 확인·보고서·입력 폼이 즉시 반영되도록 관련 쿼리를 모두 다시 불러옵니다. */
+export async function refreshFinanceAfterChange(
+  qc: QueryClient,
+  input:
+    | { baseDate: string; cycleType: BackendCycle }
+    | { yearMonth: string },
+) {
+  const yearMonths =
+    "yearMonth" in input
+      ? [input.yearMonth]
+      : yearMonthsForBaseDate(input.cycleType, input.baseDate);
 
-export const useAiInsight = (yearMonth: string) =>
-  useQuery({ queryKey: keys.ai(yearMonth), queryFn: () => getAiInsight(yearMonth) });
+  const tasks: Promise<unknown>[] = [];
+
+  for (const ym of yearMonths) {
+    tasks.push(
+      qc.refetchQueries({ queryKey: financeKeys.cal(ym), type: "all" }),
+      qc.refetchQueries({ queryKey: financeKeys.ai(ym), type: "all" }),
+    );
+  }
+
+  if ("baseDate" in input) {
+    const { baseDate, cycleType } = input;
+    tasks.push(
+      qc.refetchQueries({
+        queryKey: financeKeys.salesPeriod(cycleType, baseDate),
+        type: "all",
+      }),
+      qc.refetchQueries({
+        queryKey: financeKeys.daily(baseDate),
+        type: "all",
+      }),
+    );
+    if (cycleType !== "HOURLY") {
+      tasks.push(
+        qc.refetchQueries({
+          queryKey: financeKeys.varPeriod(cycleType, baseDate),
+          type: "all",
+        }),
+      );
+    }
+  }
+
+  if ("yearMonth" in input) {
+    tasks.push(
+      qc.refetchQueries({
+        queryKey: financeKeys.fixed(input.yearMonth),
+        type: "all",
+      }),
+    );
+  }
+
+  tasks.push(qc.refetchQueries({ queryKey: ["sm-daily"], type: "all" }));
+
+  await Promise.all(tasks);
+}
+
+export const useCalendar = (yearMonth: string, enabled = true) =>
+  useQuery({
+    queryKey: financeKeys.cal(yearMonth),
+    queryFn: () => getCalendar(yearMonth),
+    enabled: !!yearMonth && enabled,
+    ...queryDefaults,
+    refetchOnMount: "always",
+  });
+
+export const useDaily = (date: string, enabled = true) =>
+  useQuery({
+    queryKey: financeKeys.daily(date),
+    queryFn: () => getDaily(date),
+    enabled: !!date && enabled,
+    ...queryDefaults,
+    refetchOnMount: "always",
+  });
+
+export const useAiInsight = (yearMonth: string, enabled = true) =>
+  useQuery({
+    queryKey: financeKeys.ai(yearMonth),
+    queryFn: () => getAiInsight(yearMonth),
+    enabled: !!yearMonth && enabled,
+    ...queryDefaults,
+    refetchOnMount: "always",
+  });
+
+export const useSalesPeriod = (cycle: SalesCycle, baseDate: string) => {
+  const cycleType = toBackendCycle(cycle);
+  return useQuery({
+    queryKey: financeKeys.salesPeriod(cycleType, baseDate),
+    queryFn: () => getSalesPeriod(cycleType, baseDate),
+    enabled: !!baseDate,
+    ...queryDefaults,
+    refetchOnMount: "always",
+  });
+};
+
+export const useVariablePeriod = (cycle: ExpenseCycle, baseDate: string) => {
+  const cycleType = toBackendCycle(cycle);
+  return useQuery({
+    queryKey: financeKeys.varPeriod(cycleType, baseDate),
+    queryFn: () => getVariablePeriod(cycleType, baseDate),
+    enabled: !!baseDate,
+    ...queryDefaults,
+    refetchOnMount: "always",
+  });
+};
+
+export const useFixedCost = (yearMonth: string) =>
+  useQuery({
+    queryKey: financeKeys.fixed(yearMonth),
+    queryFn: () => getFixedCost(yearMonth),
+    enabled: !!yearMonth,
+    ...queryDefaults,
+    refetchOnMount: "always",
+  });
 
 export const usePostSales = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: postSales,
-    onSuccess: (_, v) => {
-      qc.invalidateQueries({ queryKey: keys.cal(v.saleDate.slice(0, 7)) });
-      qc.invalidateQueries({ queryKey: keys.daily(v.saleDate) });
-      qc.invalidateQueries({ queryKey: keys.ai(v.saleDate.slice(0, 7)) });
+    onSuccess: async (_, v) => {
+      await refreshFinanceAfterChange(qc, {
+        baseDate: v.saleDate,
+        cycleType: v.cycleType,
+      });
     },
   });
 };
@@ -106,10 +278,11 @@ export const usePostVariable = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: postVariable,
-    onSuccess: (_, v) => {
-      qc.invalidateQueries({ queryKey: keys.cal(v.costDate.slice(0, 7)) });
-      qc.invalidateQueries({ queryKey: keys.daily(v.costDate) });
-      qc.invalidateQueries({ queryKey: keys.ai(v.costDate.slice(0, 7)) });
+    onSuccess: async (_, v) => {
+      await refreshFinanceAfterChange(qc, {
+        baseDate: v.costDate,
+        cycleType: v.cycleType,
+      });
     },
   });
 };
@@ -118,10 +291,8 @@ export const usePostFixed = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: postFixed,
-    onSuccess: (_, v) => {
-      qc.invalidateQueries({ queryKey: keys.cal(v.targetYearMonth) });
-      qc.invalidateQueries({ queryKey: keys.ai(v.targetYearMonth) });
-      qc.invalidateQueries({ queryKey: ["sm-daily"] });
+    onSuccess: async (_, v) => {
+      await refreshFinanceAfterChange(qc, { yearMonth: v.targetYearMonth });
     },
   });
 };

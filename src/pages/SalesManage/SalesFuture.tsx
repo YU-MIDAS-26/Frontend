@@ -1,5 +1,6 @@
+/* A주석 BEGIN: 추후 예상 매출 페이지 — 백엔드 GET /api/finance/forecast 연동 후 SalesManage 탭과 함께 사용 */
 import { useMemo, useState } from "react";
-// 추후 예상 매출 - 백엔드 API 미제공으로 메뉴 비활성화 (SalesManage.tsx 참고)
+/* A주석 END */
 import * as S from "../../style/SalesManage.Style";
 import { toWon } from "./salesData";
 import { toYearMonth, useForecast } from "../../api/sales_api";
