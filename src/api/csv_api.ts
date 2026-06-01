@@ -23,10 +23,18 @@ export interface DailyStats {
 }
 
 export interface HourlyHeatmap {
-  dayOfWeek: number; // 1=월, 2=화, 3=수, 4=목, 5=금, 6=토, 7=일 (또는 백엔드 스펙에 맞춤)
+  dayOfWeek: number; // 1=월, 2=화, 3=수, 4=목, 5=금, 6=토, 7=일
   hour: number; // 0 ~ 23
   amount: number; // 해당 셀의 매출 합계 (원)
   count: number; // 해당 셀의 거래 건수
+}
+
+export interface ChannelBreakdown {
+  channel: "OFFLINE" | "DELIVERY";
+  label: string;
+  amount: number;
+  count: number;
+  ratio: number;
 }
 
 export const csvApi = {
@@ -65,6 +73,20 @@ export const csvApi = {
 
     const res = await fetch(`/api/payments/stats/hourly-heatmap?${params}`);
     const json: ApiResponse<HourlyHeatmap[]> = await res.json();
+    if (json.status === "ERROR") throw new Error(json.message);
+    return json.data;
+  },
+
+  getChannelStats: async (
+    from?: string,
+    to?: string,
+  ): Promise<ChannelBreakdown[]> => {
+    const params = new URLSearchParams();
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+
+    const res = await fetch(`/api/payments/stats/channel-breakdown?${params}`);
+    const json: ApiResponse<ChannelBreakdown[]> = await res.json();
     if (json.status === "ERROR") throw new Error(json.message);
     return json.data;
   },
