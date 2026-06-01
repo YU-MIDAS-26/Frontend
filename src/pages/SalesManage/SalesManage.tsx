@@ -5,15 +5,16 @@ import SalesCSV from "./SalesCSV";
 import SalesReport from "./SalesReport";
 // import SalesFuture from "./SalesFuture";
 import * as S from "../../style/SalesManage.Style";
-import { TabPanel, ScopeNotice } from "./salesManageUi";
-import { EMPLOYEE_AUTO_KEY } from "./salesData";
-import { A_SCOPE } from "./salesBackendScope";
+import { FIX_KEY, EMPLOYEE_AUTO_KEY, parse } from "./salesData";
+import type { FixedExpenseMap } from "./salesData";
 
-type SalesTab = "check" | "input-csv" | "input" | "report";
+type SalesTab = "check" | "input-csv" | "input" | "report"; // | "future"
 
 export default function SalesManage() {
   const [activeTab, setActiveTab] = useState<SalesTab>("check");
+  const [fixedMap, setFixedMap] = useState<FixedExpenseMap>({});
   const [autoSalary, setAutoSalary] = useState(0);
+
   const [financeRefreshKey, setFinanceRefreshKey] = useState(0);
 
   const onFinanceUpdated = useCallback(() => {
@@ -49,7 +50,6 @@ export default function SalesManage() {
           >
             매출 확인
           </S.MenuButton>
-
           <S.MenuButton
             type="button"
             $active={activeTab === "input-csv"}
@@ -57,7 +57,6 @@ export default function SalesManage() {
           >
             매출 입력 - CSV
           </S.MenuButton>
-
           <S.MenuButton
             type="button"
             $active={activeTab === "input"}
@@ -65,7 +64,6 @@ export default function SalesManage() {
           >
             매출 입력 - 수기
           </S.MenuButton>
-
           <S.MenuButton
             type="button"
             $active={activeTab === "report"}
@@ -73,28 +71,32 @@ export default function SalesManage() {
           >
             보고서 확인
           </S.MenuButton>
-          {/* A주석 BEGIN: 추후 예상 매출 — GET /api/finance/forecast API 제공 후 탭 추가
-          <S.MenuButton type="button" $active={activeTab === "future"} onClick={() => setActiveTab("future")}>
-            추후 예상 매출
-          </S.MenuButton>
-          A주석 END */}
         </S.Sidebar>
 
         <S.Content>
-          {activeTab === "check" && <SalesCheck />}
+          {activeTab === "check" && (
+            <SalesCheck
+              isActive={activeTab === "check"}
+              refreshKey={financeRefreshKey}
+            />
+          )}
 
           {activeTab === "input-csv" && <SalesCSV />}
 
           {activeTab === "input" && (
             <SalesInput
-              fixedMap={fixedMap}
               autoSalary={autoSalary}
-              onUpdateFixed={updateFixed}
+              onFinanceUpdated={onFinanceUpdated}
+              onGoToCheck={() => setActiveTab("check")}
             />
           )}
 
-          {activeTab === "report" && <SalesReport />}
-          {/* {activeTab === "future" && <SalesFuture />} */}
+          {activeTab === "report" && (
+            <SalesReport
+              isActive={activeTab === "report"}
+              refreshKey={financeRefreshKey}
+            />
+          )}
         </S.Content>
       </S.Layout>
     </S.Page>
