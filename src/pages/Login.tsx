@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import styled from "styled-components";
-import { ButtonSelected, Checkbox, TextField } from "../components/Common";
+import { ButtonSelected, TextField } from "../components/Common";
 import { useLoginMutation } from "../api/login_api";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -52,6 +52,7 @@ const LoginTextField = styled(TextField)`
   height: 48px;
 `;
 
+/*
 const AutoLoginRow = styled.label`
   display: inline-flex;
   align-items: center;
@@ -73,6 +74,7 @@ const AutoLoginText = styled.span`
   font-size: 14px;
   line-height: 24px;
 `;
+*/
 
 const LoginButton = styled(ButtonSelected)`
   height: 40px;
@@ -144,7 +146,7 @@ function Login() {
 
       if (res.status === "SUCCESS") {
         localStorage.setItem("accessToken", res.data.accessToken);
-        authContextLogin(res.data.user.name);
+        authContextLogin(res.data.user.studentId);
         navigate("/");
       }
     } catch {
