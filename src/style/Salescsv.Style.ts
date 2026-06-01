@@ -1,4 +1,3 @@
-// salescsv.style.ts
 import styled, { css } from "styled-components";
 
 export const Container = styled.div`
@@ -91,9 +90,135 @@ export const ChartWrapper = styled.div`
   border: 1px solid #e2e8f0;
   padding: 20px;
   border-radius: 8px;
+`;
 
-  h4 {
-    margin-bottom: 16px;
-    color: #1e293b;
+export const ChartHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+`;
+
+export const CalendarTitle = styled.h4`
+  margin: 0;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 700;
+`;
+
+export const SectionTitle = styled.h4`
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 15px;
+  color: #1e293b;
+  font-weight: 600;
+`;
+
+export const ButtonGroup = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+export const ButtonWrapper = styled.div`
+  width: 90px;
+  height: 34px;
+`;
+
+export const EmptyDataBox = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 220px;
+  background: #f8fafc;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 13px;
+  border: 1px dashed #cbd5e1;
+`;
+
+export const FlexRow = styled.div`
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  @media (max-width: 1024px) {
+    flex-direction: column;
   }
+`;
+
+export const ChartPane = styled.div`
+  flex: 1.3;
+  width: 100%;
+`;
+
+export const InsightPane = styled.div`
+  flex: 0.7;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+`;
+
+export const SidebarSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+export const SidebarTitle = styled.div`
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+`;
+
+export const PresetGroup = styled.div`
+  display: flex;
+  gap: 6px;
+`;
+
+export const PresetButton = styled.button`
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+  }
+`;
+
+export const InsightCard = styled.div<{ $type: "peak" | "idle" }>`
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  background: ${({ $type }) => ($type === "peak" ? "#fff5f5" : "#f0fdf4")};
+  border-left: 4px solid
+    ${({ $type }) => ($type === "peak" ? "#ef4444" : "#22c55e")};
+
+  .label {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: ${({ $type }) => ($type === "peak" ? "#991b1b" : "#166534")};
+  }
+  .value {
+    color: #475569;
+    font-weight: 500;
+  }
+`;
+
+export const HeatmapContainer = styled.div`
+  width: 100%;
+  padding: 10px 0;
 `;
