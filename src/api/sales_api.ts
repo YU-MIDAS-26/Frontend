@@ -327,7 +327,8 @@ export function useFixedCost(yearMonth: string) {
   });
 }
 
-export function usePostSales() {
+// 💡 이름은 main의 직관적인 이름 유지 + 로직은 yeongjun의 강력한 공통 함수 활용
+export function useCreateSales() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: createSales,
@@ -340,7 +341,7 @@ export function usePostSales() {
   });
 }
 
-export function usePostVariable() {
+export function useCreateVariableCost() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: createVariableCost,
@@ -353,7 +354,7 @@ export function usePostVariable() {
   });
 }
 
-export function usePostFixed() {
+export function useSaveFixedCost() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: saveFixedCost,
