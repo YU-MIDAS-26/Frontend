@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import SalesCheck from "./SalesCheck";
 import SalesInput from "./SalesInput";
+import SalesCSV from "./SalesCSV";
 import SalesReport from "./SalesReport";
+// import SalesFuture from "./SalesFuture";
 import * as S from "../../style/SalesManage.Style";
 import { TabPanel, ScopeNotice } from "./salesManageUi";
 import { EMPLOYEE_AUTO_KEY } from "./salesData";
 import { A_SCOPE } from "./salesBackendScope";
 
-type SalesTab = "check" | "input" | "report";
+type SalesTab = "check" | "input-csv" | "input" | "report";
 
 export default function SalesManage() {
   const [activeTab, setActiveTab] = useState<SalesTab>("check");
@@ -19,8 +21,20 @@ export default function SalesManage() {
   }, []);
 
   useEffect(() => {
-    const auto = Number(localStorage.getItem(EMPLOYEE_AUTO_KEY) ?? "0");
-    if (Number.isFinite(auto) && auto > 0) setAutoSalary(auto);
+    const timer = setTimeout(() => {
+      const savedFixed = parse<FixedExpenseMap>(
+        localStorage.getItem(FIX_KEY),
+        {},
+      );
+      setFixedMap(savedFixed);
+
+      const auto = Number(localStorage.getItem(EMPLOYEE_AUTO_KEY) ?? "0");
+      if (Number.isFinite(auto) && auto > 0) {
+        setAutoSalary(auto);
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -35,13 +49,23 @@ export default function SalesManage() {
           >
             매출 확인
           </S.MenuButton>
+
+          <S.MenuButton
+            type="button"
+            $active={activeTab === "input-csv"}
+            onClick={() => setActiveTab("input-csv")}
+          >
+            매출 입력 - CSV
+          </S.MenuButton>
+
           <S.MenuButton
             type="button"
             $active={activeTab === "input"}
             onClick={() => setActiveTab("input")}
           >
-            매출 입력
+            매출 입력 - 수기
           </S.MenuButton>
+
           <S.MenuButton
             type="button"
             $active={activeTab === "report"}
@@ -55,33 +79,22 @@ export default function SalesManage() {
           </S.MenuButton>
           A주석 END */}
         </S.Sidebar>
+
         <S.Content>
-          <ScopeNotice $variant="info">
-            연동 범위: 매출·변동비·고정비 저장/period 조회
-            {A_SCOPE.financeDailyHourlyCalendar && " · 매출 확인(일·시간)"}
-            {A_SCOPE.aiInsightReport && " · AI 보고서"}
-            {!A_SCOPE.calendarWeeklyMonthly &&
-              " · 한주/한달 캘린더 표시는 백엔드 확장 후 (salesBackendScope.ts A주석 참고)"}
-          </ScopeNotice>
-          <TabPanel $hidden={activeTab !== "check"}>
-            <SalesCheck
-              isActive={activeTab === "check"}
-              refreshKey={financeRefreshKey}
-            />
-          </TabPanel>
-          <TabPanel $hidden={activeTab !== "input"}>
+          {activeTab === "check" && <SalesCheck />}
+
+          {activeTab === "input-csv" && <SalesCSV />}
+
+          {activeTab === "input" && (
             <SalesInput
+              fixedMap={fixedMap}
               autoSalary={autoSalary}
-              onFinanceUpdated={onFinanceUpdated}
-              onGoToCheck={() => setActiveTab("check")}
+              onUpdateFixed={updateFixed}
             />
-          </TabPanel>
-          <TabPanel $hidden={activeTab !== "report"}>
-            <SalesReport
-              isActive={activeTab === "report"}
-              refreshKey={financeRefreshKey}
-            />
-          </TabPanel>
+          )}
+
+          {activeTab === "report" && <SalesReport />}
+          {/* {activeTab === "future" && <SalesFuture />} */}
         </S.Content>
       </S.Layout>
     </S.Page>
