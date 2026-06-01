@@ -6,7 +6,10 @@ import {
 } from "@tanstack/react-query";
 import { apiClient } from "./client";
 import type { ExpenseCycle, SalesCycle } from "../pages/SalesManage/salesData";
-import { HOUR_SLOTS, yearMonthsForBaseDate } from "../pages/SalesManage/salesData";
+import {
+  HOUR_SLOTS,
+  yearMonthsForBaseDate,
+} from "../pages/SalesManage/salesData";
 
 export type ApiResponse<T> = {
   status: string;
@@ -97,7 +100,8 @@ export type SaveFixedCostPayload = {
 export const salesQueryKeys = {
   calendar: (yearMonth: string) => ["finance", "calendar", yearMonth] as const,
   daily: (date: string) => ["finance", "daily", date] as const,
-  aiInsight: (yearMonth: string) => ["finance", "ai-insight", yearMonth] as const,
+  aiInsight: (yearMonth: string) =>
+    ["finance", "ai-insight", yearMonth] as const,
   forecast: (yearMonth: string) => ["finance", "forecast", yearMonth] as const,
   salesPeriod: (cycle: BackendCycleType, base: string) =>
     ["finance", "sales-period", cycle, base] as const,
@@ -106,13 +110,14 @@ export const salesQueryKeys = {
   fixed: (yearMonth: string) => ["finance", "fixed", yearMonth] as const,
 };
 
-export const toBackendCycle = (cycle: SalesCycle | ExpenseCycle): BackendCycleType =>
-  cycle.toUpperCase() as BackendCycleType;
+export const toBackendCycle = (
+  cycle: SalesCycle | ExpenseCycle,
+): BackendCycleType => cycle.toUpperCase() as BackendCycleType;
 
 export const toYearMonth = (year: number, monthIndex: number) =>
   `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
 
-const unwrap = <T,>(response: { data: ApiResponse<T> }) => response.data.data;
+const unwrap = <T>(response: { data: ApiResponse<T> }) => response.data.data;
 
 const queryDefaults = {
   staleTime: 0,
@@ -121,7 +126,10 @@ const queryDefaults = {
 };
 
 export async function createSales(payload: CreateSalesPayload) {
-  const response = await apiClient.post<ApiResponse<number>>("/api/sales", payload);
+  const response = await apiClient.post<ApiResponse<number>>(
+    "/api/sales",
+    payload,
+  );
   return unwrap(response);
 }
 
@@ -150,9 +158,12 @@ export async function getCalendarData(yearMonth: string) {
 }
 
 export async function getDailyDetail(date: string) {
-  const response = await apiClient.get<ApiResponse<DailyDetail>>("/api/finance/daily", {
-    params: { date },
-  });
+  const response = await apiClient.get<ApiResponse<DailyDetail>>(
+    "/api/finance/daily",
+    {
+      params: { date },
+    },
+  );
   return unwrap(response);
 }
 
@@ -172,10 +183,16 @@ export async function getForecast(yearMonth: string) {
   return unwrap(response);
 }
 
-export async function getSalesPeriod(cycleType: BackendCycleType, baseDate: string) {
-  const response = await apiClient.get<ApiResponse<PeriodSales>>("/api/sales/period", {
-    params: { cycleType, baseDate },
-  });
+export async function getSalesPeriod(
+  cycleType: BackendCycleType,
+  baseDate: string,
+) {
+  const response = await apiClient.get<ApiResponse<PeriodSales>>(
+    "/api/sales/period",
+    {
+      params: { cycleType, baseDate },
+    },
+  );
   return unwrap(response);
 }
 
@@ -191,9 +208,12 @@ export async function getVariablePeriod(
 }
 
 export async function getFixedCost(yearMonth: string) {
-  const response = await apiClient.get<ApiResponse<FixedCost>>("/api/costs/fixed", {
-    params: { yearMonth },
-  });
+  const response = await apiClient.get<ApiResponse<FixedCost>>(
+    "/api/costs/fixed",
+    {
+      params: { yearMonth },
+    },
+  );
   return unwrap(response);
 }
 
@@ -221,7 +241,10 @@ export async function refreshFinanceAfterChange(
   for (const ym of yearMonths) {
     tasks.push(
       qc.refetchQueries({ queryKey: salesQueryKeys.calendar(ym), type: "all" }),
-      qc.refetchQueries({ queryKey: salesQueryKeys.aiInsight(ym), type: "all" }),
+      qc.refetchQueries({
+        queryKey: salesQueryKeys.aiInsight(ym),
+        type: "all",
+      }),
       qc.refetchQueries({ queryKey: salesQueryKeys.forecast(ym), type: "all" }),
     );
   }
@@ -257,7 +280,9 @@ export async function refreshFinanceAfterChange(
     );
   }
 
-  tasks.push(qc.refetchQueries({ queryKey: ["finance", "daily"], type: "all" }));
+  tasks.push(
+    qc.refetchQueries({ queryKey: ["finance", "daily"], type: "all" }),
+  );
 
   await Promise.all(tasks);
 }
@@ -327,12 +352,11 @@ export function useFixedCost(yearMonth: string) {
   });
 }
 
-// 💡 이름은 main의 직관적인 이름 유지 + 로직은 yeongjun의 강력한 공통 함수 활용
-export function useCreateSales() {
+export function usePostSales() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: createSales,
-    onSuccess: async (_data, variables) => {
+    onSuccess: async (_data, variables: CreateSalesPayload) => {
       await refreshFinanceAfterChange(qc, {
         baseDate: variables.saleDate,
         cycleType: variables.cycleType,
@@ -341,11 +365,11 @@ export function useCreateSales() {
   });
 }
 
-export function useCreateVariableCost() {
+export function usePostVariable() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: createVariableCost,
-    onSuccess: async (_data, variables) => {
+    onSuccess: async (_data, variables: CreateVariableCostPayload) => {
       await refreshFinanceAfterChange(qc, {
         baseDate: variables.costDate,
         cycleType: variables.cycleType,
@@ -354,12 +378,14 @@ export function useCreateVariableCost() {
   });
 }
 
-export function useSaveFixedCost() {
+export function usePostFixed() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: saveFixedCost,
-    onSuccess: async (_data, variables) => {
-      await refreshFinanceAfterChange(qc, { yearMonth: variables.targetYearMonth });
+    onSuccess: async (_data, variables: SaveFixedCostPayload) => {
+      await refreshFinanceAfterChange(qc, {
+        yearMonth: variables.targetYearMonth,
+      });
     },
   });
 }
