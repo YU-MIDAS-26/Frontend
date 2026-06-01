@@ -1,19 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import SalesCheck from "./SalesCheck";
 import SalesInput from "./SalesInput";
 import SalesCSV from "./SalesCSV";
 import SalesReport from "./SalesReport";
 // import SalesFuture from "./SalesFuture";
 import * as S from "../../style/SalesManage.Style";
-import { FIX_KEY, EMPLOYEE_AUTO_KEY, parse } from "./salesData";
-import type { FixedExpenseMap } from "./salesData";
+import { TabPanel, ScopeNotice } from "./salesManageUi";
+import { EMPLOYEE_AUTO_KEY } from "./salesData";
+import { A_SCOPE } from "./salesBackendScope";
 
 type SalesTab = "check" | "input-csv" | "input" | "report";
 
 export default function SalesManage() {
   const [activeTab, setActiveTab] = useState<SalesTab>("check");
-  const [fixedMap, setFixedMap] = useState<FixedExpenseMap>({});
   const [autoSalary, setAutoSalary] = useState(0);
+  const [financeRefreshKey, setFinanceRefreshKey] = useState(0);
+
+  const onFinanceUpdated = useCallback(() => {
+    setFinanceRefreshKey((k) => k + 1);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -31,11 +36,6 @@ export default function SalesManage() {
 
     return () => clearTimeout(timer);
   }, []);
-
-  const updateFixed = (map: FixedExpenseMap) => {
-    setFixedMap(map);
-    localStorage.setItem(FIX_KEY, JSON.stringify(map));
-  };
 
   return (
     <S.Page>
@@ -58,7 +58,6 @@ export default function SalesManage() {
             매출 입력 - CSV
           </S.MenuButton>
 
-          {/* 2. 기존 매출 입력을 '수기'로 명칭만 변경 */}
           <S.MenuButton
             type="button"
             $active={activeTab === "input"}
@@ -74,11 +73,11 @@ export default function SalesManage() {
           >
             보고서 확인
           </S.MenuButton>
-          {/* 추후 예상 매출 - 백엔드 API 미제공
+          {/* A주석 BEGIN: 추후 예상 매출 — GET /api/finance/forecast API 제공 후 탭 추가
           <S.MenuButton type="button" $active={activeTab === "future"} onClick={() => setActiveTab("future")}>
             추후 예상 매출
           </S.MenuButton>
-          */}
+          A주석 END */}
         </S.Sidebar>
 
         <S.Content>
