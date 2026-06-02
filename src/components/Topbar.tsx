@@ -101,7 +101,7 @@ const ResponsiveRightSection = styled(RightSection)`
 export default function Topbar({
   isLoggedIn = false,
   siteName = "B-SIGHT",
-  menus = ["재료 등록", "매출 확인", "직원 관리"],
+  menus = ["재료 등록", "매출 관리", "직원 관리"],
   onSiteClick,
   onMenuClick,
   onLoginClick,
