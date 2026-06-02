@@ -195,10 +195,12 @@ export default function IngredientPage() {
 
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  const [priceSearchKeyword, setPriceSearchKeyword] = useState(""); // 수기 시세 검색어
+  const [priceSearchKeyword, setPriceSearchKeyword] = useState("");
   const [searchedPriceData, setSearchedPriceData] =
-    useState<PriceRecord | null>(null); // 최신 시세 1건 결과
+    useState<PriceRecord | null>(null);
   const [isPriceLoading, setIsPriceLoading] = useState(false);
+
+  const [categoryCode, setCategoryCode] = useState<string>("");
 
   useEffect(() => {
     const fetchIngredients = async () => {
@@ -372,16 +374,20 @@ export default function IngredientPage() {
       alert("검색할 품목명을 입력해 주세요.");
       return;
     }
+
     setIsPriceLoading(true);
     setSearchedPriceData(null);
+
     try {
-      const res = await priceApi.getLatestPrice(targetName.trim());
-      if (res.status === "SUCCESS" && res.data) {
-        setSearchedPriceData(res.data);
+      const res = await priceApi.getPriceList(
+        targetName.trim(),
+        categoryCode || undefined,
+      );
+
+      if (res.status === "SUCCESS" && res.data.length > 0) {
+        setSearchedPriceData(res.data[0]);
       } else {
-        alert(
-          `[${targetName}] 항목의 최근 KAMIS 수집 시세가 존재하지 않습니다.`,
-        );
+        alert(`[${targetName}] 시세 데이터가 없습니다.`);
       }
     } catch (error) {
       console.error(error);
@@ -550,7 +556,6 @@ export default function IngredientPage() {
         </CardGrid>
       </Section>
 
-      {/* ==================== 🌾 3. 하단 섹션: KAMIS 농산물 종합 시세 분석실 (수기 통합형) ==================== */}
       <Section style={{ borderTop: "3px solid #7ea0b7", marginTop: "30px" }}>
         <Title>전국 농산물 실시간 시세 분석 (KAMIS)</Title>
         <p
@@ -564,6 +569,19 @@ export default function IngredientPage() {
           등록된 재료의 [시세 분석] 단추를 누르거나, 궁금한 농산물 품목명을
           아래에 직접 수기로 타이핑해서 검색해 보세요.
         </p>
+
+        <div style={{ marginBottom: "12px", maxWidth: "200px" }}>
+          <Select
+            value={categoryCode}
+            onChange={(e) => setCategoryCode(e.target.value)}
+          >
+            <option value="">전체</option>
+            <option value="200">채소</option>
+            <option value="300">과일</option>
+            <option value="400">육류</option>
+            <option value="500">수산물</option>
+          </Select>
+        </div>
 
         <div
           style={{
