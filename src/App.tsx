@@ -68,7 +68,7 @@ function App() {
       <Canvas>
         <Topbar
           isLoggedIn={isLoggedIn}
-          menus={["재료 등록", "매출 확인", "직원 관리"]}
+          menus={["재료 등록", "매출 관리", "직원 관리"]}
           onSiteClick={() => navigate("/")}
           onMenuClick={handleMenuClick}
           onLogoutClick={handleLogoutClick}
