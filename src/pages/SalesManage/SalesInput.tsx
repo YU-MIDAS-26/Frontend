@@ -158,54 +158,74 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
 
   useEffect(() => {
     if (autoSalary > 0) {
-      setStaffSalaryInput(String(autoSalary));
+      const timer = setTimeout(() => {
+        setStaffSalaryInput(String(autoSalary));
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [autoSalary]);
 
   useEffect(() => {
     if (!salesPeriod) return;
-    if (salesCycle === "hourly") {
-      setHourlyInputs(
-        HOUR_SLOTS.map((slot) => {
-          const h = salesPeriod.hourlySales.find((x) => x.hour === slot);
-          return h && h.amount > 0 ? String(h.amount) : "";
-        }),
-      );
-      setSalesAmountInput("");
-      return;
-    }
-    setSalesAmountInput(
-      salesPeriod.totalAmount > 0 ? String(salesPeriod.totalAmount) : "",
-    );
-    setHourlyInputs(Array.from({ length: HOUR_SLOTS.length }, () => ""));
+
+    const timer = setTimeout(() => {
+      if (salesCycle === "hourly") {
+        setHourlyInputs(
+          HOUR_SLOTS.map((slot) => {
+            const h = salesPeriod.hourlySales.find((x) => x.hour === slot);
+            return h && h.amount > 0 ? String(h.amount) : "";
+          }),
+        );
+        setSalesAmountInput("");
+      } else {
+        setSalesAmountInput(
+          salesPeriod.totalAmount > 0 ? String(salesPeriod.totalAmount) : "",
+        );
+        setHourlyInputs(Array.from({ length: HOUR_SLOTS.length }, () => ""));
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [salesPeriod, salesCycle, salesBaseDate]);
 
   useEffect(() => {
     if (!variablePeriod) return;
-    setIngredientCostInput(
-      variablePeriod.ingredientCost > 0
-        ? String(variablePeriod.ingredientCost)
-        : "",
-    );
-    if (autoSalary > 0) {
-      setStaffSalaryInput(String(autoSalary));
-    } else {
-      setStaffSalaryInput(
-        variablePeriod.salaryCost > 0 ? String(variablePeriod.salaryCost) : "",
+
+    const timer = setTimeout(() => {
+      setIngredientCostInput(
+        variablePeriod.ingredientCost > 0
+          ? String(variablePeriod.ingredientCost)
+          : "",
       );
-    }
+
+      if (autoSalary > 0) {
+        setStaffSalaryInput(String(autoSalary));
+      } else {
+        setStaffSalaryInput(
+          variablePeriod.salaryCost > 0
+            ? String(variablePeriod.salaryCost)
+            : "",
+        );
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [variablePeriod, autoSalary, expenseBaseDate, expenseCycle]);
 
   useEffect(() => {
-    if (!fixedCost) {
-      setRentInput("");
-      setUtilitiesInput("");
-      return;
-    }
-    setRentInput(fixedCost.rent > 0 ? String(fixedCost.rent) : "");
-    setUtilitiesInput(
-      fixedCost.utilityCost > 0 ? String(fixedCost.utilityCost) : "",
-    );
+    const timer = setTimeout(() => {
+      if (!fixedCost) {
+        setRentInput("");
+        setUtilitiesInput("");
+        return;
+      }
+      setRentInput(fixedCost.rent > 0 ? String(fixedCost.rent) : "");
+      setUtilitiesInput(
+        fixedCost.utilityCost > 0 ? String(fixedCost.utilityCost) : "",
+      );
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [fixedCost, fixedMonth]);
 
   const salesTotalInput = useMemo(
@@ -345,22 +365,22 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
               <option value="daily">하루</option>
               <option value="hourly">특정 시간</option>
               {/* A주석 BEGIN: 한주·한달 — period API 지원, 캘린더 미반영 시에도 입력 가능 */}
-              <option value="weekly">한주</option>
-              <option value="monthly">한달</option>
+              {/* <option value="weekly">한주</option> */}
+              {/* <option value="monthly">한달</option> */}
               {/* A주석 END: 한주·한달 */}
             </S.Select>
           </S.Row>
           {salesCycle === "weekly" && (
             <ScopeNotice $variant="info">
-              「한주」로 저장한 매출·지출은 매출 확인의 첫째주·둘째주… 주간 요약에
-              표시됩니다. 일별 칸에는 넣지 않습니다.
+              「한주」로 저장한 매출·지출은 매출 확인의 첫째주·둘째주… 주간
+              요약에 표시됩니다. 일별 칸에는 넣지 않습니다.
             </ScopeNotice>
           )}
           {salesCycle === "monthly" && (
             <ScopeNotice $variant="info">
               「한달」로 저장한 매출·지출은 매출 확인 상단의{" "}
-              {Number(salesSelectedMonth.slice(5, 7))}월 매출·지출·순이익 합계에 포함됩니다.
-              일별 칸에는 넣지 않습니다.
+              {Number(salesSelectedMonth.slice(5, 7))}월 매출·지출·순이익 합계에
+              포함됩니다. 일별 칸에는 넣지 않습니다.
             </ScopeNotice>
           )}
           {!reflectsOnSalesCheck(salesCycle) && (
@@ -434,7 +454,11 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
             <S.Label>저장 예정 금액</S.Label>
             <S.Value>{toWon(salesTotalInput)}원</S.Value>
           </S.Row>
-          <S.SaveButton type="button" onClick={saveSales} disabled={isSavingSales}>
+          <S.SaveButton
+            type="button"
+            onClick={saveSales}
+            disabled={isSavingSales}
+          >
             매출 저장/수정
           </S.SaveButton>
         </S.Panel>
@@ -475,14 +499,15 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
                 >
                   <option value="daily">하루</option>
                   {/* A주석 BEGIN: 변동비 한주·한달 */}
-                  <option value="weekly">한주</option>
-                  <option value="monthly">한달</option>
+                  {/* <option value="weekly">한주</option> */}
+                  {/* <option value="monthly">한달</option> */}
                   {/* A주석 END: 변동비 한주·한달 */}
                 </S.Select>
               </S.Row>
               {expenseCycle === "weekly" && (
                 <ScopeNotice $variant="info">
-                  「한주」 변동비는 매출 확인의 주간 요약(첫째주·둘째주…)에 표시됩니다.
+                  「한주」 변동비는 매출 확인의 주간 요약(첫째주·둘째주…)에
+                  표시됩니다.
                 </ScopeNotice>
               )}
               {expenseCycle === "monthly" && (
@@ -516,7 +541,9 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
               />
 
               {loadingVariablePeriod && (
-                <S.PickerHint>서버에서 변동비 데이터를 불러오는 중...</S.PickerHint>
+                <S.PickerHint>
+                  서버에서 변동비 데이터를 불러오는 중...
+                </S.PickerHint>
               )}
 
               <S.Row>
@@ -585,7 +612,9 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
                 />
               </S.Row>
               {loadingFixedCost && (
-                <S.PickerHint>서버에서 고정비 데이터를 불러오는 중...</S.PickerHint>
+                <S.PickerHint>
+                  서버에서 고정비 데이터를 불러오는 중...
+                </S.PickerHint>
               )}
               <S.Row>
                 <S.Label>임대료</S.Label>

@@ -116,7 +116,7 @@ export default function Topbar({
       navigate("/ingredients");
       return;
     }
-    if (menu === "매출 확인") {
+    if (menu === "매출 관리") {
       navigate("/sales-check");
       return;
     }

@@ -34,6 +34,8 @@ import {
   WeekSummaryBox,
 } from "./salesManageUi";
 
+import { csvApi } from "../../api/csv_api";
+
 type DayRow = {
   date: string;
   dailySales: number;
@@ -56,6 +58,21 @@ export default function SalesCheck() {
   const [selectedDate, setSelectedDate] = useState(`${yearMonth}-01`);
   const [expandedWeekKey, setExpandedWeekKey] = useState<string | null>(null);
 
+  const csvMode = sessionStorage.getItem("csvUploaded") === "true";
+  const { data: csvDays = [] } = useQuery({
+    queryKey: ["csv-daily", yearMonth],
+    queryFn: () => {
+      const fromDate = `${yearMonth}-01`;
+
+      const toDate = `${yearMonth}-${String(
+        new Date(year, monthIndex + 1, 0).getDate(),
+      ).padStart(2, "0")}`;
+
+      return csvApi.getDailyStats(fromDate, toDate);
+    },
+    enabled: csvMode,
+  });
+
   const monthDays = useMemo(
     () => buildCalendarDays(year, monthIndex),
     [year, monthIndex],
@@ -63,10 +80,13 @@ export default function SalesCheck() {
 
   const selected = monthDays.includes(selectedDate)
     ? selectedDate
-    : monthDays[0] ?? `${yearMonth}-01`;
+    : (monthDays[0] ?? `${yearMonth}-01`);
 
-  const { data: detail, isLoading: loadingDetail, isFetching: fetchingDetail } =
-    useDaily(selected);
+  const {
+    data: detail,
+    isLoading: loadingDetail,
+    isFetching: fetchingDetail,
+  } = useDaily(selected);
 
   const weekBaseDates = useMemo(() => {
     const set = new Set(monthDays.map((date) => getWeekStart(date)));
@@ -109,19 +129,48 @@ export default function SalesCheck() {
 
   /** 하루·시간별 — finance/calendar 일별 값만 (주·월 period는 일 칸에 넣지 않음) */
   const calendarDays = useMemo<DayRow[]>(() => {
+    const hasCsvData = csvDays && csvDays.length > 0;
+
+    const shouldShowCsv = hasCsvData;
+
+    if (shouldShowCsv) {
+      const csvMap = new Map(csvDays.map((d) => [d.date, d]));
+
+      return monthDays.map((date) => {
+        const row = csvMap.get(date);
+        const csvRow = row as { date: string; amount: number } | undefined;
+        return {
+          date,
+          dailySales: csvRow?.amount ?? 0,
+          dailyExpense: 0,
+          dailyProfit: csvRow?.amount ?? 0,
+        } as DayRow;
+      });
+    }
+
     const baseMap = new Map(days.map((d) => [d.date, d]));
+
     return monthDays.map((date) => {
-      const base =
-        baseMap.get(date) ||
-        ({ date, dailySales: 0, dailyExpense: 0, dailyProfit: 0 } as DayRow);
+      const base = baseMap.get(date);
+
+      if (!base) {
+        return {
+          date,
+          dailySales: 0,
+          dailyExpense: 0,
+          dailyProfit: 0,
+        } as DayRow;
+      }
+
       return {
         date,
-        dailySales: base.dailySales,
-        dailyExpense: base.dailyExpense,
-        dailyProfit: base.dailySales - base.dailyExpense,
-      };
+        dailySales: base.dailySales ?? 0,
+        dailyExpense: base.dailyExpense ?? 0,
+        dailyProfit:
+          base.dailyProfit ?? (base.dailySales ?? 0) - (base.dailyExpense ?? 0),
+      } as DayRow;
     });
-  }, [days, monthDays]);
+  }, [days, csvDays, monthDays]);
 
   const weeklyPeriodByWeekStart = useMemo(() => {
     const map = new Map<string, { sales: number; expense: number }>();
@@ -130,7 +179,9 @@ export default function SalesCheck() {
     weekBaseDates.forEach((baseDate, index) => {
       const salesData = weeklySalesQueries[index]?.data;
       const varData = weeklyVariableQueries[index]?.data;
-      const weekStart = getWeekStart(salesData?.baseDate || varData?.baseDate || baseDate);
+      const weekStart = getWeekStart(
+        salesData?.baseDate || varData?.baseDate || baseDate,
+      );
       map.set(weekStart, {
         sales: salesData?.totalAmount ?? 0,
         expense: varData?.totalCost ?? 0,
@@ -146,10 +197,7 @@ export default function SalesCheck() {
     const sales = monthlySalesQuery.data?.totalAmount ?? 0;
     const expense = monthlyVariableQuery.data?.totalCost ?? 0;
     return periodProfit(sales, expense);
-  }, [
-    monthlySalesQuery.data,
-    monthlyVariableQuery.data,
-  ]);
+  }, [monthlySalesQuery.data, monthlyVariableQuery.data]);
 
   const monthTotals = useMemo(() => {
     const daily = sumDayRows(calendarDays);
@@ -191,7 +239,14 @@ export default function SalesCheck() {
   };
 
   const monthLabel = `${monthIndex + 1}월`;
-  const weekOrdinalLabel = ["첫째주", "둘째주", "셋째주", "넷째주", "다섯째주", "여섯째주"];
+  const weekOrdinalLabel = [
+    "첫째주",
+    "둘째주",
+    "셋째주",
+    "넷째주",
+    "다섯째주",
+    "여섯째주",
+  ];
 
   const overlayLoading =
     monthlySalesQuery.isFetching ||
@@ -277,8 +332,11 @@ export default function SalesCheck() {
               weekRows.map((row) => {
                 const weekPeriod = getWeekPeriodTotals(row.weekStart);
                 const expanded = expandedWeekKey === row.weekKey;
-                const weekIndex = weekRows.findIndex((w) => w.weekKey === row.weekKey);
-                const weekLabel = weekOrdinalLabel[weekIndex] ?? `${weekIndex + 1}째주`;
+                const weekIndex = weekRows.findIndex(
+                  (w) => w.weekKey === row.weekKey,
+                );
+                const weekLabel =
+                  weekOrdinalLabel[weekIndex] ?? `${weekIndex + 1}째주`;
                 const weekDates = row.days
                   .filter((d): d is DayRow => d !== null)
                   .map((d) => d.date);
@@ -301,9 +359,15 @@ export default function SalesCheck() {
                     </WeekSidePanel>
                     {expanded ? (
                       <WeekSummaryBox>
-                        <div>{rangeLabel}의 매출: {toWon(weekPeriod.sales)}원</div>
-                        <div>{rangeLabel}의 지출: {toWon(weekPeriod.expense)}원</div>
-                        <div>{rangeLabel}의 순이익: {toWon(weekPeriod.profit)}원</div>
+                        <div>
+                          {rangeLabel}의 매출: {toWon(weekPeriod.sales)}원
+                        </div>
+                        <div>
+                          {rangeLabel}의 지출: {toWon(weekPeriod.expense)}원
+                        </div>
+                        <div>
+                          {rangeLabel}의 순이익: {toWon(weekPeriod.profit)}원
+                        </div>
                       </WeekSummaryBox>
                     ) : (
                       <S.CalendarGrid>

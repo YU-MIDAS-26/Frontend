@@ -126,6 +126,12 @@ export default function SalesCSV() {
     setStatus("loading");
     try {
       const result = await csvApi.uploadCsv(file);
+
+      sessionStorage.setItem("csvUploaded", "true");
+
+      setUploadResult(result);
+      setStatus("success");
+      setRefreshTrigger((prev) => prev + 1);
       setUploadResult(result);
       setStatus("success");
       setRefreshTrigger((prev) => prev + 1);
