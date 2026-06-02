@@ -1,21 +1,17 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
-
-type Ingredient = {
-  id: number;
-  name: string;
-  weight: string;
-  origin: string;
-  showStores?: boolean;
-};
-
-type Store = {
-  id: number;
-  name: string;
-  price: number;
-  delivery: string;
-  url: string;
-};
+import {
+  ingredientApi,
+  naverApi,
+  type IngredientData,
+  type NaverShopItem,
+} from "../api/ingredient_api";
+import {
+  ButtonMain,
+  ButtonSelected,
+  ButtonSub,
+  TextField,
+} from "../components/Common";
 
 const Page = styled.main`
   min-height: calc(100vh - 70px);
@@ -38,48 +34,26 @@ const Title = styled.h2`
 
 const FormGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr) auto;
+  grid-template-columns: 2fr 1fr 1fr 1.2fr;
   gap: 10px;
+  align-items: center;
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
   }
 `;
 
-const Input = styled.input`
-  border: 1px solid #c8cdd2;
-  border-radius: 6px;
-  padding: 10px;
-  font-size: 14px;
-`;
-
-const Button = styled.button`
+const Select = styled.select`
+  width: 100%;
   border: none;
-  background: #7ea0b7;
-  color: #111;
-  font-weight: 700;
-  border-radius: 6px;
-  padding: 10px 14px;
-  cursor: pointer;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 8px;
-`;
-
-const EditButton = styled(Button)`
-  background: #ffc107;
-`;
-
-const DeleteButton = styled(Button)`
-  background: #dc3545;
-  color: white;
-`;
-
-const SearchButton = styled(Button)`
-  background: #28a745;
-  color: white;
+  background: #c8d7e1;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  outline: none;
+  color: black;
+  height: 48px;
+  box-sizing: border-box;
 `;
 
 const CardGrid = styled.div`
@@ -94,7 +68,7 @@ const Card = styled.div`
   background: #fafbfd;
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
 `;
 
@@ -102,6 +76,46 @@ const StoreInfo = styled.div`
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+  flex: 1;
+`;
+
+const EllipsisText = styled.strong`
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  font-size: 15px;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+`;
+
+const FixedWidthButtonWrapper = styled.div`
+  width: 110px;
+  height: 40px;
+  flex-shrink: 0;
+`;
+
+const FlexButtonWrapper = styled.div`
+  min-width: 60px;
+  height: 38px;
+`;
+
+const LargeButtonWrapper = styled(FlexButtonWrapper)`
+  min-width: 95px;
+`;
+
+const ActionButtonWrapper = styled.div`
+  width: 180px;
+  height: 48px;
+  @media (max-width: 900px) {
+    width: 100%;
+  }
 `;
 
 const Small = styled.span`
@@ -109,206 +123,281 @@ const Small = styled.span`
   font-size: 13px;
 `;
 
-const mockStores: Store[] = [
-  { id: 1, name: "농산물 직거래몰", price: 15900, delivery: "내일 도착", url: "https://www.kamis.or.kr" },
-  { id: 2, name: "푸드마켓 A", price: 16800, delivery: "2일 내 배송", url: "https://www.kamis.or.kr" },
-  { id: 3, name: "식자재마트 B", price: 17200, delivery: "오늘 출고", url: "https://www.kamis.or.kr" },
-  { id: 4, name: "로컬 도매몰", price: 18100, delivery: "3일 내 배송", url: "https://www.kamis.or.kr" },
-  { id: 5, name: "온라인 식재료몰", price: 18900, delivery: "일반 배송", url: "https://www.kamis.or.kr" },
-];
+const DeleteButton = styled.button`
+  min-width: 60px;
+  height: 38px;
+  border: none;
+  border-radius: 8px;
+  background: #f87171;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+
+  &:hover {
+    background: #ef4444;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+`;
+
+interface IngredientItem extends IngredientData {
+  showStores?: boolean;
+  stores?: NaverShopItem[];
+  loadingStores?: boolean;
+}
 
 export default function IngredientPage() {
-  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [ingredients, setIngredients] = useState<IngredientItem[]>([]);
+
   const [name, setName] = useState("");
-  const [weight, setWeight] = useState("");
-  const [origin, setOrigin] = useState("");
+  const [unitValue, setUnitValue] = useState("");
+  const [unitType, setUnitType] = useState("kg");
 
-  const cheapestStores = useMemo(() => {
-    return [...mockStores].sort((a, b) => a.price - b.price).slice(0, 5);
-  }, []);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
-  const handleAdd = () => {
-    if (!name.trim() || !weight.trim() || !origin.trim()) {
-      alert("재료명, 무게, 원산지를 모두 입력해주세요.");
-      return;
-    }
+  useEffect(() => {
+    const fetchIngredients = async () => {
+      try {
+        const res = await ingredientApi.getIngredients();
 
-    const newIngredient: Ingredient = {
-      id: Date.now(),
-      name,
-      weight,
-      origin,
+        if (res.status === "SUCCESS") {
+          setIngredients(res.data);
+        }
+      } catch (error) {
+        console.error(error);
+        alert("재료 목록을 불러오는 중 오류가 발생했습니다.");
+      }
     };
 
-    setIngredients((prev) => [...prev, newIngredient]);
-    setName("");
-    setWeight("");
-    setOrigin("");
-  };
+    fetchIngredients();
+  }, []);
 
-  const handleComplete = () => {
-    if (ingredients.length === 0) {
-      alert("등록된 재료가 없습니다.");
+  const handleAdd = async () => {
+    if (!name.trim() || !unitValue.trim()) {
+      alert("재료명과 단위를 모두 입력해주세요.");
       return;
     }
 
-    alert("재료 등록이 완료되었습니다.");
+    const combinedUnit = `${unitValue.trim()}${unitType}`;
+
+    try {
+      const res = await ingredientApi.createIngredient({
+        name: name.trim(),
+        unit: combinedUnit,
+      });
+
+      if (res.status === "SUCCESS") {
+        alert("재료가 등록되었습니다.");
+        setName("");
+        setUnitValue("");
+
+        const newInven: IngredientItem = res.data;
+        setIngredients((prev) => {
+          if (prev.some((item) => item.id === newInven.id)) return prev;
+          return [...prev, newInven];
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      alert("재료 등록에 실패했습니다.");
+    }
   };
 
   const handleDelete = (id: number) => {
-  setIngredients((prev) =>
-    prev.filter((item) => item.id !== id)
-  );
-};
+    setIngredients((prev) => prev.filter((item) => item.id !== id));
+  };
 
-const handleEdit = (item: Ingredient) => {
-  setName(item.name);
-  setWeight(item.weight);
-  setOrigin(item.origin);
+  const handleEdit = (item: IngredientItem) => {
+    setName(item.name);
 
-  setIngredients((prev) =>
-    prev.filter((i) => i.id !== item.id)
-  );
-};
+    const numberMatch = item.unit.match(/^[\d.]+/);
+    const unitMatch = item.unit.replace(/^[\d.]+/, "").trim();
 
-const handleShowStores = (id: number) => {
-  setIngredients((prev) =>
-    prev.map((item) =>
-      item.id === id
-        ? {
-            ...item,
-            showStores: !item.showStores,
-          }
-        : item
-    )
-  );
-};
+    if (numberMatch) {
+      setUnitValue(numberMatch[0]);
+      setUnitType(unitMatch || "kg");
+    } else {
+      setUnitValue("");
+      setUnitType("kg");
+    }
+
+    setEditingId(item.id);
+
+    alert("수정 API 연동 전입니다.");
+  };
+
+  const handleShowStores = async (item: IngredientItem) => {
+    if (item.showStores) {
+      setIngredients((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, showStores: false } : i)),
+      );
+      return;
+    }
+
+    if (!item.stores) {
+      setIngredients((prev) =>
+        prev.map((i) =>
+          i.id === item.id
+            ? { ...i, loadingStores: true, showStores: true }
+            : i,
+        ),
+      );
+
+      try {
+        const res = await naverApi.getLowestPrice(item.name, 5);
+        if (res.status === "SUCCESS") {
+          setIngredients((prev) =>
+            prev.map((i) =>
+              i.id === item.id
+                ? { ...i, stores: res.data.items, loadingStores: false }
+                : i,
+            ),
+          );
+        }
+      } catch (error) {
+        console.error(error);
+        alert("최저가 정보를 가져오지 못했습니다.");
+        setIngredients((prev) =>
+          prev.map((i) =>
+            i.id === item.id
+              ? { ...i, loadingStores: false, showStores: false }
+              : i,
+          ),
+        );
+      }
+    } else {
+      setIngredients((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, showStores: true } : i)),
+      );
+    }
+  };
 
   return (
     <Page>
       <Section>
         <Title>재료 등록</Title>
-
         <FormGrid>
-          <Input
+          <TextField
             placeholder="재료명 예: 양파"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-          <Input
-            placeholder="무게 예: 10kg"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value)}
+          <TextField
+            type="number"
+            placeholder="수량/크기 예: 10"
+            value={unitValue}
+            onChange={(e) => setUnitValue(e.target.value)}
           />
-          <Input
-            placeholder="원산지 예: 국내산"
-            value={origin}
-            onChange={(e) => setOrigin(e.target.value)}
-          />
-          <Button onClick={handleAdd}>사용하는 재료 추가하기</Button>
+          <Select
+            value={unitType}
+            onChange={(e) => setUnitType(e.target.value)}
+          >
+            <option value="kg">kg</option>
+            <option value="g">g</option>
+            <option value="개">개</option>
+            <option value="ml">ml</option>
+            <option value="L">L</option>
+          </Select>
+          <ActionButtonWrapper>
+            <ButtonSelected onClick={handleAdd}>
+              {editingId ? "재료 수정하기" : "사용하는 재료 추가하기"}
+            </ButtonSelected>
+          </ActionButtonWrapper>
         </FormGrid>
       </Section>
 
       <Section>
         <Title>등록된 재료</Title>
-
         <CardGrid>
           {ingredients.length === 0 ? (
             <Small>아직 등록된 재료가 없습니다.</Small>
           ) : (
             ingredients.map((item) => (
-  <div key={item.id}>
-    <Card>
-      <StoreInfo>
-        <strong>{item.name}</strong>
+              <div key={item.id}>
+                <Card>
+                  <StoreInfo>
+                    <EllipsisText>{item.name}</EllipsisText>
+                    <Small>단위/기준: {item.unit}</Small>
+                  </StoreInfo>
 
-        <Small>
-          무게: {item.weight}
-          {" / "}
-          원산지: {item.origin}
-        </Small>
-      </StoreInfo>
+                  <ButtonGroup>
+                    <FlexButtonWrapper>
+                      <ButtonSub onClick={() => handleEdit(item)}>
+                        수정
+                      </ButtonSub>
+                    </FlexButtonWrapper>
+                    <FlexButtonWrapper>
+                      <FlexButtonWrapper>
+                        <DeleteButton onClick={() => handleDelete(item.id)}>
+                          삭제
+                        </DeleteButton>
+                      </FlexButtonWrapper>
+                    </FlexButtonWrapper>
+                    <LargeButtonWrapper>
+                      {item.showStores ? (
+                        <ButtonMain onClick={() => handleShowStores(item)}>
+                          검색 닫기
+                        </ButtonMain>
+                      ) : (
+                        <ButtonSelected onClick={() => handleShowStores(item)}>
+                          최저가 검색
+                        </ButtonSelected>
+                      )}
+                    </LargeButtonWrapper>
+                  </ButtonGroup>
+                </Card>
 
-      <ButtonGroup>
-        <EditButton
-          onClick={() => handleEdit(item)}
-        >
-          수정
-        </EditButton>
+                {item.loadingStores && (
+                  <Section style={{ marginTop: "10px" }}>
+                    <Small>네이버 최저가 정보를 가져오는 중입니다...</Small>
+                  </Section>
+                )}
 
-        <DeleteButton
-          onClick={() => handleDelete(item.id)}
-        >
-          삭제
-        </DeleteButton>
+                {item.showStores && item.stores && (
+                  <Section style={{ marginTop: "10px" }}>
+                    <Title>{item.name} 최저가 구매처 TOP 5</Title>
+                    <CardGrid>
+                      {item.stores.length === 0 ? (
+                        <Small>검색된 최저가 상품이 없습니다.</Small>
+                      ) : (
+                        item.stores.map((store, index) => (
+                          <Card key={index}>
+                            <StoreInfo>
+                              {/* 1번 요구사항: 말줄임표 처리 완료 */}
+                              <EllipsisText
+                                dangerouslySetInnerHTML={{
+                                  __html: `${index + 1}. [${store.mallName || "쇼핑몰"}] ${store.title}`,
+                                }}
+                              />
+                              <Small>
+                                가격: {store.lowestPrice.toLocaleString()}원
+                              </Small>
+                            </StoreInfo>
 
-        <SearchButton
-          onClick={() => handleShowStores(item.id)}
-        >
-          최저가 검색
-        </SearchButton>
-      </ButtonGroup>
-    </Card>
-
-    {item.showStores && (
-      <Section
-        style={{
-          marginTop: "10px",
-        }}
-      >
-        <Title>
-          {item.name} 최저가 구매처 TOP 5
-        </Title>
-
-        <CardGrid>
-          {cheapestStores.map(
-            (store, index) => (
-              <Card key={store.id}>
-                <StoreInfo>
-                  <strong>
-                    {index + 1}.
-                    {" "}
-                    {store.name}
-                  </strong>
-
-                  <Small>
-                    가격:
-                    {" "}
-                    {store.price.toLocaleString()}
-                    원
-                    {" / "}
-                    {store.delivery}
-                  </Small>
-                </StoreInfo>
-
-                <Button
-                  onClick={() =>
-                    window.open(
-                      store.url,
-                      "_blank"
-                    )
-                  }
-                >
-                  구매처 이동
-                </Button>
-              </Card>
-            )
+                            <FixedWidthButtonWrapper>
+                              <ButtonSelected
+                                onClick={() =>
+                                  window.open(store.link, "_blank")
+                                }
+                              >
+                                구매처 이동
+                              </ButtonSelected>
+                            </FixedWidthButtonWrapper>
+                          </Card>
+                        ))
+                      )}
+                    </CardGrid>
+                  </Section>
+                )}
+              </div>
+            ))
           )}
         </CardGrid>
       </Section>
-    )}
-  </div>
-))
-            )
-          }
-        </CardGrid>
-
-        <div style={{ marginTop: "16px" }}>
-          <Button onClick={handleComplete}>추가완료</Button>
-        </div>
-      </Section>
-
-      
     </Page>
   );
 }

@@ -255,8 +255,7 @@ export default function SalesCSV() {
       )}
       {status === "success" && (
         <CS.StatusBadge $status="success">
-          분석 완료! {uploadResult?.savedCount}건의 데이터가 성공적으로
-          저장되었습니다.
+          분석 완료! 성공적으로 저장되었습니다.
         </CS.StatusBadge>
       )}
 
