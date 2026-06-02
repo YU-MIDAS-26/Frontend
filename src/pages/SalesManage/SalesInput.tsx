@@ -147,24 +147,21 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
     [expenseCycle, expenseAnchorDate, expenseSelectedMonth],
   );
 
+  const { data: salesPeriod, isFetching: loadingSalesPeriod } = useSalesPeriod(
+    salesCycle,
+    salesBaseDate,
+  );
   const { data: variablePeriod, isFetching: loadingVariablePeriod } =
     useVariablePeriod(expenseCycle, expenseBaseDate);
   const { data: fixedCost, isFetching: loadingFixedCost } =
     useFixedCost(fixedMonth);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (autoSalary > 0) {
       setStaffSalaryInput(String(autoSalary));
     }
   }, [autoSalary]);
 
-  const { data: salesPeriod, isFetching: loadingSalesPeriod } = useSalesPeriod(
-    salesCycle,
-    salesBaseDate,
-  );
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!salesPeriod) return;
     if (salesCycle === "hourly") {
@@ -183,7 +180,6 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
     setHourlyInputs(Array.from({ length: HOUR_SLOTS.length }, () => ""));
   }, [salesPeriod, salesCycle, salesBaseDate]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!variablePeriod) return;
     setIngredientCostInput(
@@ -200,7 +196,6 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
     }
   }, [variablePeriod, autoSalary, expenseBaseDate, expenseCycle]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!fixedCost) {
       setRentInput("");
@@ -357,15 +352,15 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
           </S.Row>
           {salesCycle === "weekly" && (
             <ScopeNotice $variant="info">
-              「한주」로 저장한 매출·지출은 매출 확인의 첫째주·둘째주… 주간
-              요약에 표시됩니다. 일별 칸에는 넣지 않습니다.
+              「한주」로 저장한 매출·지출은 매출 확인의 첫째주·둘째주… 주간 요약에
+              표시됩니다. 일별 칸에는 넣지 않습니다.
             </ScopeNotice>
           )}
           {salesCycle === "monthly" && (
             <ScopeNotice $variant="info">
               「한달」로 저장한 매출·지출은 매출 확인 상단의{" "}
-              {Number(salesSelectedMonth.slice(5, 7))}월 매출·지출·순이익 합계에
-              포함됩니다. 일별 칸에는 넣지 않습니다.
+              {Number(salesSelectedMonth.slice(5, 7))}월 매출·지출·순이익 합계에 포함됩니다.
+              일별 칸에는 넣지 않습니다.
             </ScopeNotice>
           )}
           {!reflectsOnSalesCheck(salesCycle) && (
@@ -439,11 +434,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
             <S.Label>저장 예정 금액</S.Label>
             <S.Value>{toWon(salesTotalInput)}원</S.Value>
           </S.Row>
-          <S.SaveButton
-            type="button"
-            onClick={saveSales}
-            disabled={isSavingSales}
-          >
+          <S.SaveButton type="button" onClick={saveSales} disabled={isSavingSales}>
             매출 저장/수정
           </S.SaveButton>
         </S.Panel>
@@ -491,8 +482,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
               </S.Row>
               {expenseCycle === "weekly" && (
                 <ScopeNotice $variant="info">
-                  「한주」 변동비는 매출 확인의 주간 요약(첫째주·둘째주…)에
-                  표시됩니다.
+                  「한주」 변동비는 매출 확인의 주간 요약(첫째주·둘째주…)에 표시됩니다.
                 </ScopeNotice>
               )}
               {expenseCycle === "monthly" && (
@@ -526,9 +516,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
               />
 
               {loadingVariablePeriod && (
-                <S.PickerHint>
-                  서버에서 변동비 데이터를 불러오는 중...
-                </S.PickerHint>
+                <S.PickerHint>서버에서 변동비 데이터를 불러오는 중...</S.PickerHint>
               )}
 
               <S.Row>
@@ -597,9 +585,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
                 />
               </S.Row>
               {loadingFixedCost && (
-                <S.PickerHint>
-                  서버에서 고정비 데이터를 불러오는 중...
-                </S.PickerHint>
+                <S.PickerHint>서버에서 고정비 데이터를 불러오는 중...</S.PickerHint>
               )}
               <S.Row>
                 <S.Label>임대료</S.Label>
