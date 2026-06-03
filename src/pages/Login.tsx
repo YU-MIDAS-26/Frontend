@@ -117,7 +117,7 @@ const SuccessMessage = styled.p`
 function Login() {
   const [studentId, setStudentId] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  //const [rememberMe, setRememberMe] = useState(false);
 
   const navigate = useNavigate();
   const { login: authContextLogin } = useAuth();
@@ -141,7 +141,6 @@ function Login() {
       const res = await loginMutation.mutateAsync({
         studentId,
         password,
-        rememberMe,
       });
 
       if (res.status === "SUCCESS") {
