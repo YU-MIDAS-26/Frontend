@@ -33,21 +33,33 @@ export const formatDateLocal = (date: Date) => {
 
 export const today = () => formatDateLocal(new Date());
 
-export const sameWeek = (targetDate: string, anchorDate: string) => {
-  const t = new Date(`${targetDate}T00:00:00`);
-  const a = new Date(`${anchorDate}T00:00:00`);
-  const s = new Date(a);
-  s.setDate(a.getDate() - a.getDay());
-  const e = new Date(s);
-  e.setDate(s.getDate() + 6);
-  return t >= s && t <= e;
-};
+/** BACK3 WEEKLY: 월요일 시작 (previousOrSame MONDAY) */
+export const WEEKDAY_LABELS_MON_FIRST = [
+  "월",
+  "화",
+  "수",
+  "목",
+  "금",
+  "토",
+  "일",
+] as const;
 
 export const getWeekStart = (dateText: string) => {
-  const date = new Date(`${dateText}T00:00:00`);
+  const date = new Date(`${dateText}T12:00:00`);
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
   const start = new Date(date);
-  start.setDate(date.getDate() - date.getDay());
+  start.setDate(date.getDate() + diff);
   return formatDateLocal(start);
+};
+
+export const sameWeek = (targetDate: string, anchorDate: string) =>
+  getWeekStart(targetDate) === getWeekStart(anchorDate);
+
+/** 월요일 첫 열 캘린더 — 1일 앞 빈 칸 개수 */
+export const getMondayFirstPadCount = (year: number, monthIndex: number) => {
+  const jsDay = new Date(year, monthIndex, 1).getDay();
+  return jsDay === 0 ? 6 : jsDay - 1;
 };
 
 export const getWeekEnd = (dateText: string) => {
@@ -93,6 +105,24 @@ export const yearMonthsForBaseDate = (
   return [monthKey(baseDate)];
 };
 
+export const WEEK_ORDINAL_LABELS = [
+  "첫째주",
+  "둘째주",
+  "셋째주",
+  "넷째주",
+  "다섯째주",
+  "여섯째주",
+] as const;
+
+export function getWeekOrdinalLabel(
+  row: CalendarWeekRow,
+  weekRows: CalendarWeekRow[],
+): string {
+  const index = weekRows.findIndex((w) => w.weekKey === row.weekKey);
+  if (index < 0) return "주";
+  return WEEK_ORDINAL_LABELS[index] ?? `${index + 1}째주`;
+}
+
 export type CalendarWeekRow = {
   weekKey: string;
   weekStart: string;
@@ -103,6 +133,30 @@ export type CalendarWeekRow = {
     dailyProfit: number;
   } | null)[];
 };
+
+/** 해당 주 행에 실제로 그려진 이번 달 날짜만 (주간 라벨·요약용) */
+export function getWeekDatesInMonth(
+  days: CalendarWeekRow["days"],
+  yearMonth: string,
+): string[] {
+  return days
+    .filter(
+      (d): d is NonNullable<CalendarWeekRow["days"][number]> =>
+        d !== null && d.date.startsWith(yearMonth),
+    )
+    .map((d) => d.date);
+}
+
+export function formatWeekRangeInMonth(
+  days: CalendarWeekRow["days"],
+  yearMonth: string,
+): string {
+  const dates = getWeekDatesInMonth(days, yearMonth);
+  if (dates.length === 0) return "";
+  const fmt = (d: string) => d.replace(/-/g, "/");
+  if (dates.length === 1) return fmt(dates[0]);
+  return `${fmt(dates[0])}~${fmt(dates[dates.length - 1])}`;
+}
 
 export function groupCalendarIntoWeeks(
   year: number,
@@ -116,14 +170,14 @@ export function groupCalendarIntoWeeks(
 ): CalendarWeekRow[] {
   const dayMap = new Map(days.map((d) => [d.date, d]));
   const monthDays = buildCalendarDays(year, monthIndex);
-  const firstWeekday = new Date(year, monthIndex, 1).getDay();
+  const padCount = getMondayFirstPadCount(year, monthIndex);
   const cells: ({
     date: string;
     dailySales: number;
     dailyExpense: number;
     dailyProfit: number;
   } | null)[] = [
-    ...Array.from({ length: firstWeekday }, () => null),
+    ...Array.from({ length: padCount }, () => null),
     ...monthDays.map(
       (date) =>
         dayMap.get(date) ?? {

@@ -3,6 +3,7 @@ import * as S from "../../style/SalesManage.Style";
 import { SyncBanner, ScopeNotice } from "./salesManageUi";
 import { CycleDatePicker } from "./SalesCycleDatePicker";
 import { reflectsOnSalesCheck } from "./salesBackendScope";
+import { getStoredFixedCost, setStoredFixedCost } from "./salesFixedStorage";
 import type { SalesCycle, ExpenseCycle } from "./salesData";
 import {
   HOUR_SLOTS,
@@ -216,14 +217,22 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!fixedCost) {
+      if (fixedCost) {
+        setRentInput(fixedCost.rent > 0 ? String(fixedCost.rent) : "");
+        setUtilitiesInput(
+          fixedCost.utilityCost > 0 ? String(fixedCost.utilityCost) : "",
+        );
+        return;
+      }
+      const stored = getStoredFixedCost(fixedMonth);
+      if (!stored) {
         setRentInput("");
         setUtilitiesInput("");
         return;
       }
-      setRentInput(fixedCost.rent > 0 ? String(fixedCost.rent) : "");
+      setRentInput(stored.rent > 0 ? String(stored.rent) : "");
       setUtilitiesInput(
-        fixedCost.utilityCost > 0 ? String(fixedCost.utilityCost) : "",
+        stored.utilityCost > 0 ? String(stored.utilityCost) : "",
       );
     }, 0);
 
@@ -345,6 +354,12 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
         rent,
         utilityCost,
       });
+      setStoredFixedCost({
+        targetYearMonth: fixedMonth,
+        rent,
+        utilityCost,
+        totalCost: rent + utilityCost,
+      });
       setFixedSaveSuccess(true);
     } catch (error) {
       setFixedSaveError(
@@ -396,15 +411,15 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
           </S.Row>
           {salesCycle === "weekly" && (
             <ScopeNotice $variant="info">
-              「한주」로 저장한 매출·지출은 매출 확인의 첫째주·둘째주… 주간
-              요약에 표시됩니다. 일별 칸에는 넣지 않습니다.
+              「한주」로 저장한 매출·지출은 매출 확인의 첫째주·둘째주… 주간 요약에
+              표시됩니다. 일별 칸에는 넣지 않습니다.
             </ScopeNotice>
           )}
           {salesCycle === "monthly" && (
             <ScopeNotice $variant="info">
               「한달」로 저장한 매출·지출은 매출 확인 상단의{" "}
-              {Number(salesSelectedMonth.slice(5, 7))}월 매출·지출·순이익 합계에
-              포함됩니다. 일별 칸에는 넣지 않습니다.
+              {Number(salesSelectedMonth.slice(5, 7))}월 매출·지출·순이익 합계에 포함됩니다.
+              일별 칸에는 넣지 않습니다.
             </ScopeNotice>
           )}
           {!reflectsOnSalesCheck(salesCycle) && (
@@ -479,14 +494,9 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
             <S.Value>{toWon(salesTotalInput)}원</S.Value>
           </S.Row>
           <div style={{ display: "flex", gap: 8 }}>
-            <S.SaveButton
-              type="button"
-              onClick={saveSales}
-              disabled={isSavingSales}
-            >
-              매출 저장
+            <S.SaveButton type="button" onClick={saveSales} disabled={isSavingSales}>
+              매출 저장/수정
             </S.SaveButton>
-
             <S.SaveButton
               type="button"
               onClick={removeSales}
@@ -540,8 +550,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
               </S.Row>
               {expenseCycle === "weekly" && (
                 <ScopeNotice $variant="info">
-                  「한주」 변동비는 매출 확인의 주간 요약(첫째주·둘째주…)에
-                  표시됩니다.
+                  「한주」 변동비는 매출 확인의 주간 요약(첫째주·둘째주…)에 표시됩니다.
                 </ScopeNotice>
               )}
               {expenseCycle === "monthly" && (
@@ -575,9 +584,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
               />
 
               {loadingVariablePeriod && (
-                <S.PickerHint>
-                  서버에서 변동비 데이터를 불러오는 중...
-                </S.PickerHint>
+                <S.PickerHint>서버에서 변동비 데이터를 불러오는 중...</S.PickerHint>
               )}
 
               <S.Row>
@@ -646,9 +653,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
                 />
               </S.Row>
               {loadingFixedCost && (
-                <S.PickerHint>
-                  서버에서 고정비 데이터를 불러오는 중...
-                </S.PickerHint>
+                <S.PickerHint>서버에서 고정비 데이터를 불러오는 중...</S.PickerHint>
               )}
               <S.Row>
                 <S.Label>임대료</S.Label>
