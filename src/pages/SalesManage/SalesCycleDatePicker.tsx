@@ -6,6 +6,8 @@ import {
   getWeekStart,
   formatWeekRange,
   sameWeek,
+  getMondayFirstPadCount,
+  WEEKDAY_LABELS_MON_FIRST,
 } from "./salesData";
 import { toYearMonth } from "../../api/sales_api";
 
@@ -38,7 +40,7 @@ export function CycleDatePicker({
     () => buildCalendarDays(calendarYear, calendarMonthIndex),
     [calendarYear, calendarMonthIndex],
   );
-  const firstWeekday = new Date(calendarYear, calendarMonthIndex, 1).getDay();
+  const mondayPadCount = getMondayFirstPadCount(calendarYear, calendarMonthIndex);
   const weekAnchor = getWeekStart(anchorDate);
 
   if (cycle === "daily" || cycle === "hourly") {
@@ -93,12 +95,12 @@ export function CycleDatePicker({
           </S.NavButtons>
         </S.CalendarHeader>
         <S.WeekHeader>
-          {["일", "월", "화", "수", "목", "금", "토"].map((label) => (
+          {WEEKDAY_LABELS_MON_FIRST.map((label) => (
             <S.WeekDay key={label}>{label}</S.WeekDay>
           ))}
         </S.WeekHeader>
         <S.CalendarGrid>
-          {Array.from({ length: firstWeekday }).map((_, index) => (
+          {Array.from({ length: mondayPadCount }).map((_, index) => (
             <div key={`empty-${index}`} />
           ))}
           {monthDays.map((date) => (

@@ -3,6 +3,7 @@ import * as S from "../../style/SalesManage.Style";
 import { SyncBanner, ScopeNotice } from "./salesManageUi";
 import { CycleDatePicker } from "./SalesCycleDatePicker";
 import { reflectsOnSalesCheck } from "./salesBackendScope";
+import { getStoredFixedCost, setStoredFixedCost } from "./salesFixedStorage";
 import type { SalesCycle, ExpenseCycle } from "./salesData";
 import {
   HOUR_SLOTS,
@@ -197,15 +198,21 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
   }, [variablePeriod, autoSalary, expenseBaseDate, expenseCycle]);
 
   useEffect(() => {
-    if (!fixedCost) {
+    if (fixedCost) {
+      setRentInput(fixedCost.rent > 0 ? String(fixedCost.rent) : "");
+      setUtilitiesInput(
+        fixedCost.utilityCost > 0 ? String(fixedCost.utilityCost) : "",
+      );
+      return;
+    }
+    const stored = getStoredFixedCost(fixedMonth);
+    if (!stored) {
       setRentInput("");
       setUtilitiesInput("");
       return;
     }
-    setRentInput(fixedCost.rent > 0 ? String(fixedCost.rent) : "");
-    setUtilitiesInput(
-      fixedCost.utilityCost > 0 ? String(fixedCost.utilityCost) : "",
-    );
+    setRentInput(stored.rent > 0 ? String(stored.rent) : "");
+    setUtilitiesInput(stored.utilityCost > 0 ? String(stored.utilityCost) : "");
   }, [fixedCost, fixedMonth]);
 
   const salesTotalInput = useMemo(
@@ -300,6 +307,12 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
         targetYearMonth: fixedMonth,
         rent,
         utilityCost,
+      });
+      setStoredFixedCost({
+        targetYearMonth: fixedMonth,
+        rent,
+        utilityCost,
+        totalCost: rent + utilityCost,
       });
       setFixedSaveSuccess(true);
     } catch (error) {
