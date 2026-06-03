@@ -141,7 +141,6 @@ function Login() {
       const res = await loginMutation.mutateAsync({
         studentId,
         password,
-        rememberMe,
       });
 
       if (res.status === "SUCCESS") {

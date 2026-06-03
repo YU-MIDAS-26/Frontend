@@ -6,7 +6,6 @@ import type { LoginRequest, ApiResponse } from "./auth";
 export type LoginFormValues = {
   studentId: string;
   password: string;
-  rememberMe: boolean;
 };
 
 export type PasswordResetRequestPayload = {
