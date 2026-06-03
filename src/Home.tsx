@@ -16,6 +16,7 @@ function MainIntro() {
       block: "start",
     });
   };
+
   return (
     <Page>
       <HeroSection>
@@ -26,8 +27,9 @@ function MainIntro() {
         </Title>
 
         <Description>
-          매출 데이터, 식자재 시세, 주변 상권 가격, 지역 뉴스까지 종합 분석하여
-          음식점 자영업자에게 필요한 경영 전략을 AI 리포트로 제공합니다.
+          매출 CSV 파일 업로드 한 번으로 분석하는 우리 매장 현황부터, 네이버
+          최저가와 KAMIS 전국 시세를 결합한 스마트한 식자재 관리까지. 자영업자를
+          위한 AI 경영 전략 리포트를 경험해 보세요.
         </Description>
 
         <ButtonGroup>
@@ -46,71 +48,82 @@ function MainIntro() {
         <CardGrid>
           <FeatureCard>
             <CardNumber>01</CardNumber>
-            <CardTitle>통합 데이터 분석</CardTitle>
+            <CardTitle>식자재 실시간 시세 분석</CardTitle>
             <CardText>
-              매장 매출 데이터와 KAMIS 식자재 시세, 주변 업체 메뉴 가격, 지역
-              뉴스 데이터를 함께 분석합니다.
+              등록한 재료의 전국 농산물 시세(KAMIS)를 확인하고, 네이버 쇼핑
+              API를 통해 실시간 최저가 정보를 즉시 검색합니다. 궁금한 품목은
+              직접 수기로 타이핑하여 찾아볼 수도 있습니다.
             </CardText>
           </FeatureCard>
 
           <FeatureCard>
             <CardNumber>02</CardNumber>
-            <CardTitle>AI 경영 리포트</CardTitle>
+            <CardTitle>CSV 기반 매출 시각화</CardTitle>
             <CardText>
-              분석 결과를 기반으로 가격 최적화, 로컬 이슈 대응, 폐기 예측,
-              트렌드 추천 등 실제 운영 전략을 제안합니다.
+              매장의 매출 CSV 파일을 업로드하면 <strong>일별 매출 추이</strong>,{" "}
+              <strong>채널별 매출 비중</strong>은 물론, 매장이 가장 바쁜
+              시간대를 한눈에 파악하는{" "}
+              <strong>요일 × 시간대별 매출 집중도 히트맵</strong>을 시각화하여
+              보여줍니다.
             </CardText>
           </FeatureCard>
 
           <FeatureCard>
             <CardNumber>03</CardNumber>
-            <CardTitle>예상 매출 및 순수익 계산</CardTitle>
+            <CardTitle>AI 데이터 통합 리포트</CardTitle>
             <CardText>
-              월별 예상 매출을 분석하고 공과금, 직원 급여 등을 제외한 실제
-              순수익을 계산해 안정적인 운영 계획을 돕습니다.
+              시각화된 매출 데이터와 실시간 식자재 시세를 AI가 종합 분석합니다.
+              단순한 수치를 넘어 견고한 순이익 유지를 위한 비용 절감 방안,
+              비수기 사전 대비 마케팅 전략, 고객 확보 프로모션 등 구체적인 운영
+              가이드를 제안합니다.
             </CardText>
           </FeatureCard>
         </CardGrid>
       </Section>
 
-      <Section>
+      {/* 분석 프로세스 섹션 */}
+      <Section style={{ background: "#ffffff" }}>
         <SectionTitle>데이터 수집 및 분석 방식</SectionTitle>
         <ProcessBox>
           <ProcessItem>
-            <ProcessTitle>공공데이터 API</ProcessTitle>
+            <ProcessTag>INPUT</ProcessTag>
+            <ProcessTitle>데이터 입력 및 수집</ProcessTitle>
             <ProcessText>
-              KAMIS Open API를 활용해 실시간 식자재 시세를 수집합니다.
+              - 매출 CSV 파일 업로드
+              <br />
+              - 식자재 품목 등록 및 수기 검색
+              <br />- KAMIS & 네이버 API 연동
             </ProcessText>
           </ProcessItem>
 
           <ProcessArrow>→</ProcessArrow>
 
           <ProcessItem>
-            <ProcessTitle>크롤링</ProcessTitle>
+            <ProcessTag>ANALYSIS</ProcessTag>
+            <ProcessTitle>시각화 및 시세 분석</ProcessTitle>
             <ProcessText>
-              Beautiful Soup와 Selenium으로 주변 메뉴 가격 정보를 수집합니다.
+              - 일별/채널별 그래프 생성
+              <br />
+              - 요일×시간대 매출 히트맵 분석
+              <br />- 전국 농산물 시세 추이 분석
             </ProcessText>
           </ProcessItem>
 
           <ProcessArrow>→</ProcessArrow>
 
           <ProcessItem>
-            <ProcessTitle>AI 분석 서버</ProcessTitle>
+            <ProcessTag>REPORT</ProcessTag>
+            <ProcessTitle>AI 경영 제안</ProcessTitle>
             <ProcessText>
-              FastAPI 기반 AI 서버에서 데이터를 통합 분석합니다.
-            </ProcessText>
-          </ProcessItem>
-
-          <ProcessArrow>→</ProcessArrow>
-
-          <ProcessItem>
-            <ProcessTitle>LLM 리포트</ProcessTitle>
-            <ProcessText>
-              분석 수치를 사용자가 이해하기 쉬운 경영 제안 문장으로 변환합니다.
+              - 최저가 기반 식자재 구매 전략
+              <br />
+              - 연중 비수기 예측 및 사전 마케팅 제안
+              <br />- 총 판매량·비용 분석을 통한 순이익 리포트
             </ProcessText>
           </ProcessItem>
         </ProcessBox>
       </Section>
+
       <Footer>© 2026 Team Acta. All Rights Reserved.</Footer>
     </Page>
   );
@@ -142,7 +155,7 @@ const Title = styled.h1`
 `;
 
 const Description = styled.p`
-  width: min(100%, 680px);
+  width: min(100%, 750px);
   margin: 28px 0 0;
   font-size: 20px;
   line-height: 1.8;
@@ -157,8 +170,8 @@ const ButtonGroup = styled.div`
 `;
 
 const PrimaryButton = styled.button`
-  width: 160px;
-  height: 48px;
+  width: 180px;
+  height: 52px;
   border: none;
   border-radius: 12px;
   background: #7ea0b7;
@@ -166,11 +179,15 @@ const PrimaryButton = styled.button`
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
+  transition: background 0.2s;
+  &:hover {
+    background: #6a8ba3;
+  }
 `;
 
 const SecondaryButton = styled.button`
-  width: 160px;
-  height: 48px;
+  width: 180px;
+  height: 52px;
   border: 1px solid #7ea0b7;
   border-radius: 12px;
   background: white;
@@ -178,48 +195,53 @@ const SecondaryButton = styled.button`
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
+  &:hover {
+    background: #f0f4f8;
+  }
 `;
 
 const Section = styled.section`
-  padding: 80px 120px;
+  padding: 100px clamp(24px, 10vw, 120px);
   box-sizing: border-box;
 `;
 
 const SectionTitle = styled.h2`
-  margin: 0 0 36px;
-  font-size: 32px;
+  margin: 0 0 48px;
+  font-size: 36px;
   font-weight: 800;
   color: #111827;
+  text-align: center;
 `;
 
 const CardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 28px;
-
-  @media (max-width: 980px) {
+  gap: 32px;
+  @media (max-width: 1024px) {
     grid-template-columns: 1fr;
   }
 `;
 
 const FeatureCard = styled.article`
-  min-height: 260px;
-  padding: 32px;
-  border-radius: 24px;
+  min-height: 300px;
+  padding: 40px;
+  border-radius: 28px;
   background: white;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06);
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 `;
 
 const CardNumber = styled.div`
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   color: #7ea0b7;
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 `;
 
 const CardTitle = styled.h3`
-  margin: 0 0 18px;
+  margin: 0 0 20px;
   font-size: 24px;
   font-weight: 800;
   color: #1f2937;
@@ -230,27 +252,43 @@ const CardText = styled.p`
   font-size: 16px;
   line-height: 1.8;
   color: #4b5563;
+  strong {
+    color: #172554;
+  }
 `;
 
 const ProcessBox = styled.div`
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 24px;
+  justify-content: center;
 `;
 
 const ProcessItem = styled.div`
   flex: 1;
-  padding: 28px 24px;
-  border-radius: 20px;
-  background: white;
+  min-width: 280px;
+  padding: 32px;
+  border-radius: 24px;
+  background: #f9fafb;
   border: 1px solid #e5e7eb;
   box-sizing: border-box;
 `;
 
+const ProcessTag = styled.span`
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 16px;
+`;
+
 const ProcessTitle = styled.h3`
-  margin: 0 0 14px;
-  font-size: 20px;
+  margin: 0 0 16px;
+  font-size: 21px;
   font-weight: 800;
   color: #1f2937;
 `;
@@ -258,7 +296,7 @@ const ProcessTitle = styled.h3`
 const ProcessText = styled.p`
   margin: 0;
   font-size: 15px;
-  line-height: 1.7;
+  line-height: 1.8;
   color: #6b7280;
 `;
 
@@ -266,24 +304,21 @@ const ProcessArrow = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 800;
-  color: #9ca3af;
-
+  color: #cbd5e1;
+  padding-top: 60px;
   @media (max-width: 980px) {
-    width: 100%;
-    transform: rotate(90deg);
+    display: none;
   }
 `;
 
 const Footer = styled.footer`
   width: 100%;
-  padding: 24px 0 36px;
+  padding: 40px 0;
   text-align: center;
-
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: #a0a8b3;
-
-  background: transparent;
+  border-top: 1px solid #e5e7eb;
 `;
