@@ -55,7 +55,7 @@ export default function SalesCSV() {
 
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
+  const [, setUploadResult] = useState<UploadResult | null>(null);
 
   const [chartData, setChartData] = useState<DailyStats[]>([]);
   const [heatmapData, setHeatmapData] = useState<HourlyHeatmap[]>([]);

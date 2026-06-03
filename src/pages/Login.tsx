@@ -117,7 +117,7 @@ const SuccessMessage = styled.p`
 function Login() {
   const [studentId, setStudentId] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe] = useState(false);
 
   const navigate = useNavigate();
   const { login: authContextLogin } = useAuth();
