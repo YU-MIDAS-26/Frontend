@@ -34,8 +34,6 @@ import {
   WeekSummaryBox,
 } from "./salesManageUi";
 
-import { csvApi } from "../../api/csv_api";
-
 type DayRow = {
   date: string;
   dailySales: number;
@@ -57,21 +55,6 @@ export default function SalesCheck() {
   } = useCalendar(yearMonth);
   const [selectedDate, setSelectedDate] = useState(`${yearMonth}-01`);
   const [expandedWeekKey, setExpandedWeekKey] = useState<string | null>(null);
-
-  const csvMode = sessionStorage.getItem("csvUploaded") === "true";
-  const { data: csvDays = [] } = useQuery({
-    queryKey: ["csv-daily", yearMonth],
-    queryFn: () => {
-      const fromDate = `${yearMonth}-01`;
-
-      const toDate = `${yearMonth}-${String(
-        new Date(year, monthIndex + 1, 0).getDate(),
-      ).padStart(2, "0")}`;
-
-      return csvApi.getDailyStats(fromDate, toDate);
-    },
-    enabled: csvMode,
-  });
 
   const monthDays = useMemo(
     () => buildCalendarDays(year, monthIndex),
@@ -129,25 +112,6 @@ export default function SalesCheck() {
 
   /** 하루·시간별 — finance/calendar 일별 값만 (주·월 period는 일 칸에 넣지 않음) */
   const calendarDays = useMemo<DayRow[]>(() => {
-    const hasCsvData = csvDays && csvDays.length > 0;
-
-    const shouldShowCsv = hasCsvData;
-
-    if (shouldShowCsv) {
-      const csvMap = new Map(csvDays.map((d) => [d.date, d]));
-
-      return monthDays.map((date) => {
-        const row = csvMap.get(date);
-        const csvRow = row as { date: string; amount: number } | undefined;
-        return {
-          date,
-          dailySales: csvRow?.amount ?? 0,
-          dailyExpense: 0,
-          dailyProfit: csvRow?.amount ?? 0,
-        } as DayRow;
-      });
-    }
-
     const baseMap = new Map(days.map((d) => [d.date, d]));
 
     return monthDays.map((date) => {
@@ -159,7 +123,7 @@ export default function SalesCheck() {
           dailySales: 0,
           dailyExpense: 0,
           dailyProfit: 0,
-        } as DayRow;
+        };
       }
 
       return {
@@ -168,9 +132,9 @@ export default function SalesCheck() {
         dailyExpense: base.dailyExpense ?? 0,
         dailyProfit:
           base.dailyProfit ?? (base.dailySales ?? 0) - (base.dailyExpense ?? 0),
-      } as DayRow;
+      };
     });
-  }, [days, csvDays, monthDays]);
+  }, [days, monthDays]);
 
   const weeklyPeriodByWeekStart = useMemo(() => {
     const map = new Map<string, { sales: number; expense: number }>();
