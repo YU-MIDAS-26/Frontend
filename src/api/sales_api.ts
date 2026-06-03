@@ -8,6 +8,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { apiClient } from "./client";
 import type { ExpenseCycle, SalesCycle } from "../pages/SalesManage/salesData";
 import { HOUR_SLOTS, yearMonthsForBaseDate } from "../pages/SalesManage/salesData";
+import { A_SCOPE } from "../pages/SalesManage/salesBackendScope";
 
 export type ApiResponse<T> = {
   status: string;
@@ -135,6 +136,7 @@ const queryDefaults = {
   staleTime: 0,
   gcTime: 5 * 60 * 1000,
   refetchOnMount: "always" as const,
+  retry: false as const,
 };
 
 export async function createSales(payload: CreateSalesPayload) {
@@ -158,12 +160,29 @@ export async function saveFixedCost(payload: SaveFixedCostPayload) {
   return unwrap(response);
 }
 
+function normalizeDateParam(value: unknown): string {
+  if (typeof value === "string") {
+    return value.length >= 10 ? value.slice(0, 10) : value;
+  }
+  if (Array.isArray(value) && value.length >= 3) {
+    const [y, m, d] = value;
+    return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  }
+  return String(value ?? "");
+}
+
 export async function getCalendarData(yearMonth: string) {
   const response = await apiClient.get<ApiResponse<CalendarDaily[]>>(
     "/api/finance/calendar",
     { params: { yearMonth } },
   );
-  return unwrap(response);
+  return unwrap(response).map((row) => ({
+    ...row,
+    date: normalizeDateParam(row.date),
+    dailySales: Number(row.dailySales) || 0,
+    dailyExpense: Number(row.dailyExpense) || 0,
+    dailyProfit: Number(row.dailyProfit) || 0,
+  }));
 }
 
 export async function getDailyDetail(date: string) {
@@ -238,9 +257,17 @@ export async function refreshFinanceAfterChange(
   for (const ym of yearMonths) {
     tasks.push(
       qc.refetchQueries({ queryKey: salesQueryKeys.calendar(ym), type: "all" }),
-      qc.refetchQueries({ queryKey: salesQueryKeys.aiInsight(ym), type: "all" }),
-      qc.refetchQueries({ queryKey: salesQueryKeys.forecast(ym), type: "all" }),
     );
+    if (A_SCOPE.aiInsightReport) {
+      tasks.push(
+        qc.refetchQueries({ queryKey: salesQueryKeys.aiInsight(ym), type: "all" }),
+      );
+    }
+    if (A_SCOPE.financeForecastApi) {
+      tasks.push(
+        qc.refetchQueries({ queryKey: salesQueryKeys.forecast(ym), type: "all" }),
+      );
+    }
   }
 
   if ("baseDate" in input) {
@@ -255,7 +282,7 @@ export async function refreshFinanceAfterChange(
         type: "all",
       }),
     );
-    if (cycleType !== "HOURLY") {
+    if (cycleType !== "HOURLY" && A_SCOPE.variablePeriodApi) {
       tasks.push(
         qc.refetchQueries({
           queryKey: salesQueryKeys.varPeriod(cycleType, baseDate),
@@ -265,7 +292,7 @@ export async function refreshFinanceAfterChange(
     }
   }
 
-  if ("yearMonth" in input) {
+  if ("yearMonth" in input && A_SCOPE.fixedCostApi) {
     tasks.push(
       qc.refetchQueries({
         queryKey: salesQueryKeys.fixed(input.yearMonth),
@@ -273,10 +300,6 @@ export async function refreshFinanceAfterChange(
       }),
     );
   }
-
-  tasks.push(
-    qc.refetchQueries({ queryKey: salesQueryKeys.root(), type: "all" }),
-  );
 
   await Promise.all(tasks);
 }
@@ -287,6 +310,7 @@ export function useCalendar(yearMonth: string, enabled = true) {
     queryKey: salesQueryKeys.calendar(yearMonth),
     queryFn: () => getCalendarData(yearMonth),
     enabled: queryEnabled,
+    throwOnError: false,
     ...queryDefaults,
   });
 }
@@ -297,12 +321,15 @@ export function useDaily(date: string, enabled = true) {
     queryKey: salesQueryKeys.daily(date),
     queryFn: () => getDailyDetail(date),
     enabled: queryEnabled,
+    throwOnError: false,
     ...queryDefaults,
   });
 }
 
 export function useAiInsight(yearMonth: string, enabled = true) {
-  const queryEnabled = useFinanceQueryEnabled(!!yearMonth && enabled);
+  const queryEnabled = useFinanceQueryEnabled(
+    !!yearMonth && enabled && A_SCOPE.aiInsightReport,
+  );
   return useQuery({
     queryKey: salesQueryKeys.aiInsight(yearMonth),
     queryFn: () => getAiInsight(yearMonth),
@@ -312,7 +339,9 @@ export function useAiInsight(yearMonth: string, enabled = true) {
 }
 
 export function useForecast(yearMonth: string) {
-  const queryEnabled = useFinanceQueryEnabled(!!yearMonth);
+  const queryEnabled = useFinanceQueryEnabled(
+    !!yearMonth && A_SCOPE.financeForecastApi,
+  );
   return useQuery({
     queryKey: salesQueryKeys.forecast(yearMonth),
     queryFn: () => getForecast(yearMonth),
@@ -321,20 +350,29 @@ export function useForecast(yearMonth: string) {
   });
 }
 
-export function useSalesPeriod(cycle: SalesCycle, baseDate: string) {
+export function useSalesPeriod(
+  cycle: SalesCycle,
+  baseDate: string,
+  enabled = true,
+) {
   const cycleType = toBackendCycle(cycle);
-  const queryEnabled = useFinanceQueryEnabled(!!baseDate);
+  const queryEnabled = useFinanceQueryEnabled(
+    !!baseDate && A_SCOPE.salesPeriodApi && enabled,
+  );
   return useQuery({
     queryKey: salesQueryKeys.salesPeriod(cycleType, baseDate),
     queryFn: () => getSalesPeriod(cycleType, baseDate),
     enabled: queryEnabled,
+    throwOnError: false,
     ...queryDefaults,
   });
 }
 
 export function useVariablePeriod(cycle: ExpenseCycle, baseDate: string) {
   const cycleType = toBackendCycle(cycle);
-  const queryEnabled = useFinanceQueryEnabled(!!baseDate);
+  const queryEnabled = useFinanceQueryEnabled(
+    !!baseDate && A_SCOPE.variablePeriodApi,
+  );
   return useQuery({
     queryKey: salesQueryKeys.varPeriod(cycleType, baseDate),
     queryFn: () => getVariablePeriod(cycleType, baseDate),
@@ -344,7 +382,9 @@ export function useVariablePeriod(cycle: ExpenseCycle, baseDate: string) {
 }
 
 export function useFixedCost(yearMonth: string) {
-  const queryEnabled = useFinanceQueryEnabled(!!yearMonth);
+  const queryEnabled = useFinanceQueryEnabled(
+    !!yearMonth && A_SCOPE.fixedCostApi,
+  );
   return useQuery({
     queryKey: salesQueryKeys.fixed(yearMonth),
     queryFn: () => getFixedCost(yearMonth),
