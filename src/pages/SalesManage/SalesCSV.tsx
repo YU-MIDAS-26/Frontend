@@ -119,14 +119,13 @@ export default function SalesCSV() {
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     setStatus("loading");
     try {
+      await csvApi.uploadCsv(file);
       sessionStorage.setItem("csvUploaded", "true");
-
-      setStatus("success");
-      setRefreshTrigger((prev) => prev + 1);
       setStatus("success");
       setRefreshTrigger((prev) => prev + 1);
     } catch (err) {
