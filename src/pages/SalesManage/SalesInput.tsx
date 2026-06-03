@@ -16,6 +16,7 @@ import {
   buildHourlySales,
   toBackendCycle,
   usePostSales,
+  useDeleteSales,
   usePostVariable,
   usePostFixed,
   useSalesPeriod,
@@ -133,6 +134,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
   const [utilitiesInput, setUtilitiesInput] = useState("");
 
   const createSalesMutation = usePostSales();
+  const deleteSalesMutation = useDeleteSales();
   const createVariableMutation = usePostVariable();
   const saveFixedMutation = usePostFixed();
 
@@ -272,6 +274,28 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
     } catch (error) {
       setSalesSaveError(
         error instanceof Error ? error.message : "매출 저장에 실패했습니다.",
+      );
+    }
+  };
+
+  const removeSales = async () => {
+    if (!window.confirm("해당 매출 데이터를 삭제하시겠습니까?")) {
+      return;
+    }
+    try {
+      await deleteSalesMutation.mutateAsync({
+        cycleType: toBackendCycle(salesCycle),
+        baseDate: salesBaseDate,
+      });
+
+      setSalesAmountInput("");
+      setHourlyInputs(Array.from({ length: HOUR_SLOTS.length }, () => ""));
+
+      setSalesSaveSuccess(false);
+      setSalesSaveError("");
+    } catch (error) {
+      setSalesSaveError(
+        error instanceof Error ? error.message : "매출 삭제에 실패했습니다.",
       );
     }
   };
@@ -454,13 +478,23 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
             <S.Label>저장 예정 금액</S.Label>
             <S.Value>{toWon(salesTotalInput)}원</S.Value>
           </S.Row>
-          <S.SaveButton
-            type="button"
-            onClick={saveSales}
-            disabled={isSavingSales}
-          >
-            매출 저장/수정
-          </S.SaveButton>
+          <div style={{ display: "flex", gap: 8 }}>
+            <S.SaveButton
+              type="button"
+              onClick={saveSales}
+              disabled={isSavingSales}
+            >
+              매출 저장
+            </S.SaveButton>
+
+            <S.SaveButton
+              type="button"
+              onClick={removeSales}
+              disabled={deleteSalesMutation.isPending}
+            >
+              매출 삭제
+            </S.SaveButton>
+          </div>
         </S.Panel>
       )}
 
