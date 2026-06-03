@@ -414,13 +414,13 @@ export default function IngredientPage() {
       priceAvgYear,
     } = searchedPriceData;
     return Math.max(
-      priceToday,
-      price1dAgo,
-      price1wAgo,
-      price2wAgo,
-      price1mAgo,
-      price1yAgo,
-      priceAvgYear,
+      priceToday ?? 0,
+      price1dAgo ?? 0,
+      price1wAgo ?? 0,
+      price2wAgo ?? 0,
+      price1mAgo ?? 0,
+      price1yAgo ?? 0,
+      priceAvgYear ?? 0,
       1,
     );
   }, [searchedPriceData]);
@@ -648,7 +648,9 @@ export default function IngredientPage() {
                   />
                 </BarWrapper>
                 <strong>
-                  {searchedPriceData.priceToday.toLocaleString()}원
+                  {searchedPriceData.priceToday != null
+                    ? `${searchedPriceData.priceToday.toLocaleString()}원`
+                    : "-"}
                 </strong>
               </ChartBarRow>
 
@@ -662,7 +664,11 @@ export default function IngredientPage() {
                     )}
                   />
                 </BarWrapper>
-                <Small>{searchedPriceData.price1dAgo.toLocaleString()}원</Small>
+                <Small>
+                  {searchedPriceData.price1dAgo != null
+                    ? `${searchedPriceData.price1dAgo.toLocaleString()}원`
+                    : "-"}
+                </Small>
               </ChartBarRow>
 
               <ChartBarRow>
@@ -675,7 +681,11 @@ export default function IngredientPage() {
                     )}
                   />
                 </BarWrapper>
-                <Small>{searchedPriceData.price1wAgo.toLocaleString()}원</Small>
+                <Small>
+                  {searchedPriceData.price1wAgo != null
+                    ? `${searchedPriceData.price1wAgo.toLocaleString()}원`
+                    : "-"}
+                </Small>
               </ChartBarRow>
 
               <ChartBarRow>
@@ -688,7 +698,11 @@ export default function IngredientPage() {
                     )}
                   />
                 </BarWrapper>
-                <Small>{searchedPriceData.price2wAgo.toLocaleString()}원</Small>
+                <Small>
+                  {searchedPriceData.price2wAgo != null
+                    ? `${searchedPriceData.price2wAgo.toLocaleString()}원`
+                    : "-"}
+                </Small>
               </ChartBarRow>
 
               <ChartBarRow>
@@ -701,7 +715,11 @@ export default function IngredientPage() {
                     )}
                   />
                 </BarWrapper>
-                <Small>{searchedPriceData.price1mAgo.toLocaleString()}원</Small>
+                <Small>
+                  {searchedPriceData.price1mAgo != null
+                    ? `${searchedPriceData.price1mAgo.toLocaleString()}원`
+                    : "-"}
+                </Small>
               </ChartBarRow>
 
               <ChartBarRow>
@@ -714,7 +732,11 @@ export default function IngredientPage() {
                     )}
                   />
                 </BarWrapper>
-                <Small>{searchedPriceData.price1yAgo.toLocaleString()}원</Small>
+                <Small>
+                  {searchedPriceData.price1yAgo != null
+                    ? `${searchedPriceData.price1yAgo.toLocaleString()}원`
+                    : "-"}
+                </Small>
               </ChartBarRow>
 
               <ChartBarRow>
@@ -733,7 +755,9 @@ export default function IngredientPage() {
                   />
                 </BarWrapper>
                 <strong style={{ color: "#059669" }}>
-                  {searchedPriceData.priceAvgYear.toLocaleString()}원
+                  {searchedPriceData.priceAvgYear != null
+                    ? `${searchedPriceData.priceAvgYear.toLocaleString()}원`
+                    : "-"}
                 </strong>
               </ChartBarRow>
             </ChartContainer>
