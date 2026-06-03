@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   csvApi,
   type DailyStats,
-  type UploadResult,
   type HourlyHeatmap,
   type ChannelBreakdown,
 } from "../../api/csv_api";
@@ -55,7 +54,7 @@ export default function SalesCSV() {
 
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
+  //const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
 
   const [chartData, setChartData] = useState<DailyStats[]>([]);
   const [heatmapData, setHeatmapData] = useState<HourlyHeatmap[]>([]);
@@ -121,18 +120,13 @@ export default function SalesCSV() {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
 
     setStatus("loading");
     try {
-      const result = await csvApi.uploadCsv(file);
-
       sessionStorage.setItem("csvUploaded", "true");
 
-      setUploadResult(result);
       setStatus("success");
       setRefreshTrigger((prev) => prev + 1);
-      setUploadResult(result);
       setStatus("success");
       setRefreshTrigger((prev) => prev + 1);
     } catch (err) {
