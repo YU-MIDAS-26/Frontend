@@ -101,7 +101,7 @@ const ResponsiveRightSection = styled(RightSection)`
 export default function Topbar({
   isLoggedIn = false,
   siteName = "B-SIGHT",
-  menus = ["재료 등록", "매출 확인", "직원 관리"],
+  menus = ["재료 등록", "매출 관리", "직원 관리"],
   onSiteClick,
   onMenuClick,
   onLoginClick,
@@ -111,13 +111,12 @@ export default function Topbar({
 }: TopbarProps) {
   const navigate = useNavigate();
 
-  // 메뉴 클릭 시 라우터 주소로 이동하는 함수
   const handleMenuClick = (menu: string) => {
     if (menu === "재료 등록") {
       navigate("/ingredients");
       return;
     }
-    if (menu === "매출 확인") {
+    if (menu === "매출 관리") {
       navigate("/sales-check");
       return;
     }
@@ -173,10 +172,9 @@ export default function Topbar({
           </LogoButton>
         </ResponsiveLeftSection>
 
-        {/* 1. 로그인한 상태(isLoggedIn === true)일 때만 메뉴가 보이도록 수정 */}
-        {isLoggedIn && (
-          <ResponsiveCenterSection>
-            {menus.map((menu) => (
+        <ResponsiveCenterSection>
+          {isLoggedIn &&
+            menus.map((menu) => (
               <ActionButton
                 key={menu}
                 type="button"
@@ -185,8 +183,7 @@ export default function Topbar({
                 {menu}
               </ActionButton>
             ))}
-          </ResponsiveCenterSection>
-        )}
+        </ResponsiveCenterSection>
 
         <ResponsiveRightSection>
           {isLoggedIn ? (

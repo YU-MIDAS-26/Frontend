@@ -17,6 +17,7 @@ import {
   buildHourlySales,
   toBackendCycle,
   usePostSales,
+  useDeleteSales,
   usePostVariable,
   usePostFixed,
   useSalesPeriod,
@@ -134,6 +135,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
   const [utilitiesInput, setUtilitiesInput] = useState("");
 
   const createSalesMutation = usePostSales();
+  const deleteSalesMutation = useDeleteSales();
   const createVariableMutation = usePostVariable();
   const saveFixedMutation = usePostFixed();
 
@@ -159,60 +161,82 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
 
   useEffect(() => {
     if (autoSalary > 0) {
-      setStaffSalaryInput(String(autoSalary));
+      const timer = setTimeout(() => {
+        setStaffSalaryInput(String(autoSalary));
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [autoSalary]);
 
   useEffect(() => {
     if (!salesPeriod) return;
-    if (salesCycle === "hourly") {
-      setHourlyInputs(
-        HOUR_SLOTS.map((slot) => {
-          const h = salesPeriod.hourlySales.find((x) => x.hour === slot);
-          return h && h.amount > 0 ? String(h.amount) : "";
-        }),
-      );
-      setSalesAmountInput("");
-      return;
-    }
-    setSalesAmountInput(
-      salesPeriod.totalAmount > 0 ? String(salesPeriod.totalAmount) : "",
-    );
-    setHourlyInputs(Array.from({ length: HOUR_SLOTS.length }, () => ""));
+
+    const timer = setTimeout(() => {
+      if (salesCycle === "hourly") {
+        setHourlyInputs(
+          HOUR_SLOTS.map((slot) => {
+            const h = salesPeriod.hourlySales.find((x) => x.hour === slot);
+            return h && h.amount > 0 ? String(h.amount) : "";
+          }),
+        );
+        setSalesAmountInput("");
+      } else {
+        setSalesAmountInput(
+          salesPeriod.totalAmount > 0 ? String(salesPeriod.totalAmount) : "",
+        );
+        setHourlyInputs(Array.from({ length: HOUR_SLOTS.length }, () => ""));
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [salesPeriod, salesCycle, salesBaseDate]);
 
   useEffect(() => {
     if (!variablePeriod) return;
-    setIngredientCostInput(
-      variablePeriod.ingredientCost > 0
-        ? String(variablePeriod.ingredientCost)
-        : "",
-    );
-    if (autoSalary > 0) {
-      setStaffSalaryInput(String(autoSalary));
-    } else {
-      setStaffSalaryInput(
-        variablePeriod.salaryCost > 0 ? String(variablePeriod.salaryCost) : "",
+
+    const timer = setTimeout(() => {
+      setIngredientCostInput(
+        variablePeriod.ingredientCost > 0
+          ? String(variablePeriod.ingredientCost)
+          : "",
       );
-    }
+
+      if (autoSalary > 0) {
+        setStaffSalaryInput(String(autoSalary));
+      } else {
+        setStaffSalaryInput(
+          variablePeriod.salaryCost > 0
+            ? String(variablePeriod.salaryCost)
+            : "",
+        );
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [variablePeriod, autoSalary, expenseBaseDate, expenseCycle]);
 
   useEffect(() => {
-    if (fixedCost) {
-      setRentInput(fixedCost.rent > 0 ? String(fixedCost.rent) : "");
+    const timer = setTimeout(() => {
+      if (fixedCost) {
+        setRentInput(fixedCost.rent > 0 ? String(fixedCost.rent) : "");
+        setUtilitiesInput(
+          fixedCost.utilityCost > 0 ? String(fixedCost.utilityCost) : "",
+        );
+        return;
+      }
+      const stored = getStoredFixedCost(fixedMonth);
+      if (!stored) {
+        setRentInput("");
+        setUtilitiesInput("");
+        return;
+      }
+      setRentInput(stored.rent > 0 ? String(stored.rent) : "");
       setUtilitiesInput(
-        fixedCost.utilityCost > 0 ? String(fixedCost.utilityCost) : "",
+        stored.utilityCost > 0 ? String(stored.utilityCost) : "",
       );
-      return;
-    }
-    const stored = getStoredFixedCost(fixedMonth);
-    if (!stored) {
-      setRentInput("");
-      setUtilitiesInput("");
-      return;
-    }
-    setRentInput(stored.rent > 0 ? String(stored.rent) : "");
-    setUtilitiesInput(stored.utilityCost > 0 ? String(stored.utilityCost) : "");
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [fixedCost, fixedMonth]);
 
   const salesTotalInput = useMemo(
@@ -259,6 +283,28 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
     } catch (error) {
       setSalesSaveError(
         error instanceof Error ? error.message : "매출 저장에 실패했습니다.",
+      );
+    }
+  };
+
+  const removeSales = async () => {
+    if (!window.confirm("해당 매출 데이터를 삭제하시겠습니까?")) {
+      return;
+    }
+    try {
+      await deleteSalesMutation.mutateAsync({
+        cycleType: toBackendCycle(salesCycle),
+        baseDate: salesBaseDate,
+      });
+
+      setSalesAmountInput("");
+      setHourlyInputs(Array.from({ length: HOUR_SLOTS.length }, () => ""));
+
+      setSalesSaveSuccess(false);
+      setSalesSaveError("");
+    } catch (error) {
+      setSalesSaveError(
+        error instanceof Error ? error.message : "매출 삭제에 실패했습니다.",
       );
     }
   };
@@ -358,8 +404,8 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
               <option value="daily">하루</option>
               <option value="hourly">특정 시간</option>
               {/* A주석 BEGIN: 한주·한달 — period API 지원, 캘린더 미반영 시에도 입력 가능 */}
-              <option value="weekly">한주</option>
-              <option value="monthly">한달</option>
+              {/* <option value="weekly">한주</option> */}
+              {/* <option value="monthly">한달</option> */}
               {/* A주석 END: 한주·한달 */}
             </S.Select>
           </S.Row>
@@ -447,9 +493,18 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
             <S.Label>저장 예정 금액</S.Label>
             <S.Value>{toWon(salesTotalInput)}원</S.Value>
           </S.Row>
-          <S.SaveButton type="button" onClick={saveSales} disabled={isSavingSales}>
-            매출 저장/수정
-          </S.SaveButton>
+          <div style={{ display: "flex", gap: 8 }}>
+            <S.SaveButton type="button" onClick={saveSales} disabled={isSavingSales}>
+              매출 저장/수정
+            </S.SaveButton>
+            <S.SaveButton
+              type="button"
+              onClick={removeSales}
+              disabled={deleteSalesMutation.isPending}
+            >
+              매출 삭제
+            </S.SaveButton>
+          </div>
         </S.Panel>
       )}
 
@@ -488,8 +543,8 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
                 >
                   <option value="daily">하루</option>
                   {/* A주석 BEGIN: 변동비 한주·한달 */}
-                  <option value="weekly">한주</option>
-                  <option value="monthly">한달</option>
+                  {/* <option value="weekly">한주</option> */}
+                  {/* <option value="monthly">한달</option> */}
                   {/* A주석 END: 변동비 한주·한달 */}
                 </S.Select>
               </S.Row>

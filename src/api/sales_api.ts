@@ -406,6 +406,25 @@ export function usePostSales() {
   });
 }
 
+export function useDeleteSales() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      cycleType,
+      baseDate,
+    }: {
+      cycleType: BackendCycleType;
+      baseDate: string;
+    }) => deleteSales(cycleType, baseDate),
+    onSuccess: async (_, variables) => {
+      await refreshFinanceAfterChange(qc, {
+        baseDate: variables.baseDate,
+        cycleType: variables.cycleType,
+      });
+    },
+  });
+}
+
 export function usePostVariable() {
   const qc = useQueryClient();
   return useMutation({
@@ -427,4 +446,21 @@ export function usePostFixed() {
       await refreshFinanceAfterChange(qc, { yearMonth: variables.targetYearMonth });
     },
   });
+}
+
+export async function deleteSales(
+  cycleType: BackendCycleType,
+  baseDate: string,
+) {
+  const response = await apiClient.delete<ApiResponse<object>>(
+    "/api/sales/period",
+    {
+      params: {
+        cycleType,
+        baseDate,
+      },
+    },
+  );
+
+  return unwrap(response);
 }

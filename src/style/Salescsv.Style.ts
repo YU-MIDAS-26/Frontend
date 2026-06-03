@@ -145,12 +145,14 @@ export const FlexRow = styled.div`
   align-items: flex-start;
   @media (max-width: 1024px) {
     flex-direction: column;
+    align-items: stretch;
   }
 `;
 
 export const ChartPane = styled.div`
   flex: 1.3;
   width: 100%;
+  min-width: 0; /* Recharts/Echarts 내부 찌그러짐 방지용 꿀팁 */
 `;
 
 export const InsightPane = styled.div`
@@ -221,4 +223,37 @@ export const InsightCard = styled.div<{ $type: "peak" | "idle" }>`
 export const HeatmapContainer = styled.div`
   width: 100%;
   padding: 10px 0;
+`;
+
+export const DonutContainer = styled.div`
+  position: relative;
+  width: 100%;
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 320px;
+`;
+
+export const DonutCenterText = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  items-center: center;
+  justify-content: center;
+  pointer-events: none;
+  text-align: center;
+
+  .total-amount {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .label {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+  }
 `;

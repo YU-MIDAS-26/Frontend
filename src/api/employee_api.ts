@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "./client";
 import type { ApiResponse } from "./auth";
 
-// 백엔드 통신 규격 데이터 타입
 export type BackendEmployee = {
   id: number;
   name: string;
@@ -17,7 +16,6 @@ export type BackendEmployee = {
   updatedAt: string;
 };
 
-// 직원 생성/수정용 데이터 요청 규격
 export type EmployeeSavePayload = {
   name: string;
   birthDate: string;
@@ -28,7 +26,6 @@ export type EmployeeSavePayload = {
   weeklyHolidayPayApplied: boolean;
 };
 
-// 1. 직원 목록 조회
 export const getEmployees = async (): Promise<
   ApiResponse<BackendEmployee[]>
 > => {
@@ -37,7 +34,6 @@ export const getEmployees = async (): Promise<
   return response.data;
 };
 
-// 2. 직원 등록
 export const createEmployee = async (
   payload: EmployeeSavePayload,
 ): Promise<ApiResponse<BackendEmployee>> => {
@@ -48,7 +44,6 @@ export const createEmployee = async (
   return response.data;
 };
 
-// 3. 직원 수정
 export const updateEmployee = async (
   id: number,
   payload: EmployeeSavePayload,
@@ -60,7 +55,6 @@ export const updateEmployee = async (
   return response.data;
 };
 
-// 4. 직원 삭제
 export const deleteEmployee = async (
   id: number,
 ): Promise<ApiResponse<{ success: boolean; message: string }>> => {
@@ -69,8 +63,6 @@ export const deleteEmployee = async (
   >(`/api/employees/${id}`);
   return response.data;
 };
-
-// --- React Query Hooks 세팅 ---
 
 export const useEmployeesQuery = () =>
   useQuery({
@@ -129,7 +121,7 @@ export type AttendanceRecord = {
   employeeId: number;
   employeeName: string;
   workDate: string;
-  checkInTime: string | null; // 🟢 객체 다 걷어내고 순수 "09:00:00" 문자열로 확정!
+  checkInTime: string | null;
   checkOutTime: string | null;
   breakTimeApplied: boolean;
   breakStartTime: string | null;

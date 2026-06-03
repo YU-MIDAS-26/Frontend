@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   csvApi,
   type DailyStats,
-  type UploadResult,
   type HourlyHeatmap,
+  type ChannelBreakdown,
 } from "../../api/csv_api";
 import * as CS from "../../style/Salescsv.Style";
 import {
@@ -14,11 +14,20 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
   CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from "recharts";
 import { ButtonMain } from "../../components/Common";
 import ReactECharts from "echarts-for-react";
 
 type UploadStatus = "idle" | "loading" | "success" | "error";
+
+const CHANNEL_COLORS = {
+  OFFLINE: "#3b82f6", // 매장: 파랑
+  DELIVERY: "#f59e0b", // 배달: 주황
+};
 
 function fillMonthDates(
   stats: DailyStats[],
@@ -45,36 +54,24 @@ export default function SalesCSV() {
 
   const [status, setStatus] = useState<UploadStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
-  const [chartData, setChartData] = useState<DailyStats[]>([]);
+  //const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
 
+  const [chartData, setChartData] = useState<DailyStats[]>([]);
   const [heatmapData, setHeatmapData] = useState<HourlyHeatmap[]>([]);
+  const [channelData, setChannelData] = useState<ChannelBreakdown[]>([]); // 채널 데이터 상태 추가
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const totalMonthAmount = useMemo(() => {
     return chartData.reduce((acc, cur) => acc + cur.amount, 0);
   }, [chartData]);
 
+  const hasLineData = useMemo(() => {
+    return chartData.length > 0 && chartData.some((d) => d.amount > 0);
+  }, [chartData]);
+
   const hasHeatmapData = useMemo(() => {
     return heatmapData.length > 0 && heatmapData.some((d) => d.amount > 0);
   }, [heatmapData]);
-
-  // 최고 피크 시간대와 가장 한가한 시간대 분석 데이터 추출
-  const insightStats = useMemo(() => {
-    if (!hasHeatmapData) return null;
-    const days = ["월", "화", "수", "목", "금", "토", "일"];
-
-    const validCells = heatmapData.filter((d) => d.amount > 0);
-    if (validCells.length === 0) return null;
-
-    const peakCell = [...validCells].sort((a, b) => b.amount - a.amount)[0];
-    const idleCell = [...validCells].sort((a, b) => a.amount - b.amount)[0];
-
-    return {
-      peak: `${days[peakCell.dayOfWeek >= 1 ? peakCell.dayOfWeek - 1 : peakCell.dayOfWeek]}요일 ${peakCell.hour}시 (${peakCell.amount.toLocaleString()}원)`,
-      idle: `${days[idleCell.dayOfWeek >= 1 ? idleCell.dayOfWeek - 1 : idleCell.dayOfWeek]}요일 ${idleCell.hour}시 (${idleCell.amount.toLocaleString()}원)`,
-    };
-  }, [heatmapData, hasHeatmapData]);
 
   useEffect(() => {
     const fromDate = `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`;
@@ -82,24 +79,25 @@ export default function SalesCSV() {
       new Date(currentYear, currentMonth, 0).getDate(),
     ).padStart(2, "0")}`;
 
-    const loadStats = async () => {
+    const loadData = async () => {
       try {
-        const statsData = await csvApi.getDailyStats(fromDate, toDate);
-        setChartData(fillMonthDates(statsData, currentYear, currentMonth));
+        const [statsData, heatmapResponse, channelResponse] = await Promise.all(
+          [
+            csvApi.getDailyStats(fromDate, toDate),
+            csvApi.getHourlyHeatmap(fromDate, toDate),
+            csvApi.getChannelStats(fromDate, toDate),
+          ],
+        );
 
-        const heatmapResponse = await csvApi.getHourlyHeatmap(fromDate, toDate);
+        setChartData(fillMonthDates(statsData, currentYear, currentMonth));
         setHeatmapData(heatmapResponse);
+        setChannelData(channelResponse);
       } catch (err) {
-        setStatus("error");
-        if (err instanceof Error) {
-          setErrorMessage(err.message);
-        } else {
-          setErrorMessage("데이터 분석 중 에러가 발생했습니다.");
-        }
+        console.error(err);
       }
     };
 
-    void loadStats();
+    void loadData();
   }, [currentYear, currentMonth, refreshTrigger]);
 
   const handlePrevMonth = () => {
@@ -122,26 +120,26 @@ export default function SalesCSV() {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
 
     setStatus("loading");
-    setErrorMessage("");
-    setUploadResult(null);
-
     try {
-      const resultData = await csvApi.uploadCsv(file);
-      setUploadResult(resultData);
+      sessionStorage.setItem("csvUploaded", "true");
+
+      setStatus("success");
+      setRefreshTrigger((prev) => prev + 1);
       setStatus("success");
       setRefreshTrigger((prev) => prev + 1);
     } catch (err) {
       setStatus("error");
-      if (err instanceof Error) {
-        setErrorMessage(err.message);
-      } else {
-        setErrorMessage("파일 분석 중 에러가 발생했습니다.");
-      }
+      setErrorMessage(
+        err instanceof Error ? err.message : "알 수 없는 에러가 발생했습니다.",
+      );
     }
   };
+
+  interface EChartsTooltipParams {
+    value: [string | number, number, number];
+  }
 
   const echartsOption = useMemo(() => {
     const days = ["월", "화", "수", "목", "금", "토", "일"];
@@ -152,70 +150,58 @@ export default function SalesCSV() {
       validAmounts.length > 0 ? Math.max(...validAmounts, 1) : 100000;
 
     const formattedData = heatmapData.map((d) => {
-      const dayIdx = d.dayOfWeek >= 1 ? d.dayOfWeek - 1 : d.dayOfWeek;
-      return [
-        d.hour, // X축 인덱스 (0 ~ 23)
-        dayIdx, // Y축 인덱스 (0 ~ 6)
-        d.amount,
-        d.count, // 인덱스 3: 주문 건수
-      ];
+      const dayIndex = d.dayOfWeek >= 1 ? d.dayOfWeek - 1 : 6;
+      return [d.hour, dayIndex, d.amount];
     });
+
     return {
       tooltip: {
         position: "top",
-        formatter: (p: { value: [number, number, number, number] }) => {
-          console.log("tooltip value", p.value);
-
-          const [hour, dayIdx, amount, count] = p.value;
-          return `${days[dayIdx]}요일 ${hour}시<br/>매출: <b>${amount.toLocaleString()}원</b> (${count || 0}건)`;
+        formatter: (params: EChartsTooltipParams) => {
+          const hour = params.value[0];
+          const dayName = days[params.value[1]];
+          const amount = params.value[2];
+          return `${dayName}요일 ${hour}시<br/>매출: <b>${amount.toLocaleString()}원</b>`;
         },
       },
       grid: {
-        height: "80%",
+        height: "75%",
         top: "4%",
-        bottom: "12%",
+        bottom: "15%",
         left: "6%",
         right: "4%",
       },
       xAxis: {
         type: "category",
         data: hours,
+        splitArea: { show: true },
       },
       yAxis: {
         type: "category",
         data: days,
+        splitArea: { show: true },
       },
       visualMap: {
-        dimension: 2,
-        type: "continuous",
         min: 0,
         max: maxAmount,
         calculable: true,
         orient: "horizontal",
         left: "center",
         bottom: "0%",
-        itemWidth: 15,
         inRange: {
           color: ["#f1f5f9", "#e0f2fe", "#7dd3fc", "#0284c7", "#0c4a6e"],
         },
-        text: ["최고 매출", "매출 없음"],
-        textStyle: { fontSize: 11, color: "#64748b" },
       },
       series: [
         {
-          name: "시간대별 매출",
+          name: "매출액",
           type: "heatmap",
           data: formattedData,
-          encode: {
-            x: 0,
-            y: 1,
-            value: 2,
-          },
           label: { show: false },
           emphasis: {
             itemStyle: {
               shadowBlur: 10,
-              shadowColor: "rgba(0, 0, 0, 0.15)",
+              shadowColor: "rgba(0, 0, 0, 0.5)",
             },
           },
         },
@@ -223,10 +209,33 @@ export default function SalesCSV() {
     };
   }, [heatmapData]);
 
+  const insightStats = useMemo(() => {
+    if (heatmapData.length === 0) return null;
+    const days = ["월", "화", "수", "목", "금", "토", "일"];
+
+    let maxItem = heatmapData[0];
+    let minItem = heatmapData[0];
+
+    heatmapData.forEach((d) => {
+      if (d.amount > maxItem.amount) maxItem = d;
+      if (d.amount < minItem.amount && d.amount > 0) minItem = d;
+    });
+
+    const maxDayIdx = maxItem.dayOfWeek >= 1 ? maxItem.dayOfWeek - 1 : 6;
+    const minDayIdx = minItem.dayOfWeek >= 1 ? minItem.dayOfWeek - 1 : 6;
+
+    return {
+      peak: `${days[maxDayIdx]}요일 ${maxItem.hour}시 (${maxItem.amount.toLocaleString()}원)`,
+      idle:
+        minItem.amount === 0
+          ? "데이터 없음"
+          : `${days[minDayIdx]}요일 ${minItem.hour}시 (${minItem.amount.toLocaleString()}원)`,
+    };
+  }, [heatmapData]);
+
   return (
     <CS.Container>
       <h3>매출 입력 - CSV</h3>
-
       <CS.UploadBox>
         <p>판매전표 CSV 파일을 업로드하여 데이터를 일괄 추가합니다.</p>
         <CS.FileLabel htmlFor="csv-file-input">파일 선택하기</CS.FileLabel>
@@ -239,33 +248,20 @@ export default function SalesCSV() {
         />
       </CS.UploadBox>
 
-      {status === "loading" && (
-        <CS.StatusBadge $status="loading">
-          파일 데이터 분석 중...
-        </CS.StatusBadge>
-      )}
       {status === "error" && (
         <CS.StatusBadge $status="error">
           분석 실패: {errorMessage}
         </CS.StatusBadge>
       )}
       {status === "success" && (
-        <CS.StatusBadge $status="success">분석 완료!</CS.StatusBadge>
-      )}
-
-      {uploadResult && (
-        <CS.ResultSummary>
-          <strong>처리 요약 리포트</strong>
-          <div>
-            • 총 행 수: {uploadResult.totalRows}건 | 성공:{" "}
-            {uploadResult.savedCount}건 | 스킵: {uploadResult.skippedCount}건
-          </div>
-        </CS.ResultSummary>
+        <CS.StatusBadge $status="success">
+          분석 완료! 성공적으로 저장되었습니다.
+        </CS.StatusBadge>
       )}
 
       <CS.ChartHeader>
         <CS.CalendarTitle>
-          {currentYear}년 {currentMonth}월 데이터 분석 리포트
+          {currentYear}년 {currentMonth}월 리포트
         </CS.CalendarTitle>
         <CS.ButtonGroup>
           <CS.ButtonWrapper>
@@ -276,45 +272,102 @@ export default function SalesCSV() {
           </CS.ButtonWrapper>
         </CS.ButtonGroup>
       </CS.ChartHeader>
+      <CS.FlexRow>
+        <CS.ChartPane style={{ flex: 1.3 }}>
+          <CS.ChartWrapper>
+            <CS.SectionTitle>일별 매출 추이</CS.SectionTitle>
+            {!hasLineData ? (
+              <CS.EmptyDataBox>
+                분석할 매출 레이아웃이 존재하지 않습니다.
+              </CS.EmptyDataBox>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(t) => t.slice(5)}
+                    style={{ fontSize: "11px" }}
+                  />
+                  <YAxis
+                    tickFormatter={(v) => `${(v / 10000).toLocaleString()}만`}
+                    style={{ fontSize: "11px" }}
+                  />
+                  <RechartsTooltip
+                    formatter={(value) => [
+                      `${Number(value).toLocaleString()}원`,
+                      "매출액",
+                    ]}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="#0284c7"
+                    strokeWidth={2}
+                    dot={{ r: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </CS.ChartWrapper>
+        </CS.ChartPane>
 
-      <CS.ChartWrapper>
-        <CS.SectionTitle>일별 매출 추이</CS.SectionTitle>
-        {totalMonthAmount === 0 ? (
-          <CS.EmptyDataBox>
-            해당 월의 판매전표 내역이 비어있습니다.
-          </CS.EmptyDataBox>
-        ) : (
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart
-              data={chartData}
-              margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis
-                dataKey="date"
-                stroke="#64748b"
-                style={{ fontSize: "11px" }}
-                tickFormatter={(t) => t.slice(5)}
-              />
-              <YAxis
-                stroke="#64748b"
-                style={{ fontSize: "11px" }}
-                tickFormatter={(v) => `${(v / 10000).toLocaleString()}만`}
-              />
-              <RechartsTooltip
-                formatter={(v) => [`${Number(v).toLocaleString()}원`, "매출액"]}
-              />
-              <Line
-                type="monotone"
-                dataKey="amount"
-                stroke="#0284c7"
-                strokeWidth={2}
-                dot={{ r: 2 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        )}
-      </CS.ChartWrapper>
+        <CS.InsightPane
+          style={{ flex: 0.7, background: "#fff", padding: 0, border: "none" }}
+        >
+          <CS.ChartWrapper style={{ width: "100%", margin: 0 }}>
+            <CS.SectionTitle>채널별 매출 비중</CS.SectionTitle>
+            {channelData.length === 0 ||
+            !channelData.some((d) => d.amount > 0) ? (
+              <CS.EmptyDataBox>채널별 데이터가 없습니다.</CS.EmptyDataBox>
+            ) : (
+              <CS.DonutContainer>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={channelData}
+                      dataKey="amount"
+                      nameKey="label"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={80}
+                      paddingAngle={4}
+                    >
+                      {channelData.map((entry) => (
+                        <Cell
+                          key={entry.channel}
+                          fill={CHANNEL_COLORS[entry.channel] || "#cbd5e1"}
+                        />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip
+                      formatter={(v: unknown) =>
+                        `${Number(v || 0).toLocaleString()}원`
+                      }
+                    />
+                    <Legend
+                      verticalAlign="bottom"
+                      height={32}
+                      iconSize={10}
+                      style={{ fontSize: "12px" }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <CS.DonutCenterText>
+                  <div className="total-amount">
+                    {totalMonthAmount.toLocaleString()}원
+                  </div>
+                  <div className="label">총 매출</div>
+                </CS.DonutCenterText>
+              </CS.DonutContainer>
+            )}
+          </CS.ChartWrapper>
+        </CS.InsightPane>
+      </CS.FlexRow>
 
       <CS.ChartWrapper>
         <CS.SectionTitle>요일 × 시간대별 매출 집중도</CS.SectionTitle>

@@ -1,5 +1,4 @@
 import type { CalendarWeekRow } from "./salesData";
-import { getWeekDatesInMonth } from "./salesData";
 
 /** 주·월 period API 합계 (일별 칸에 분배하지 않음) */
 export type PeriodTotals = {
