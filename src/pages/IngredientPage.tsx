@@ -576,10 +576,11 @@ export default function IngredientPage() {
             onChange={(e) => setCategoryCode(e.target.value)}
           >
             <option value="">전체</option>
+            <option value="100">식량작물</option>
             <option value="200">채소</option>
-            <option value="300">과일</option>
-            <option value="400">육류</option>
-            <option value="500">수산물</option>
+            <option value="400">과일</option>
+            <option value="500">축산물</option>
+            <option value="600">수산물</option>
           </Select>
         </div>
 
