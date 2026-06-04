@@ -23,10 +23,10 @@ export interface DailyStats {
 }
 
 export interface HourlyHeatmap {
-  dayOfWeek: number; // 1=월, 2=화, 3=수, 4=목, 5=금, 6=토, 7=일
-  hour: number; // 0 ~ 23
-  amount: number; // 해당 셀의 매출 합계 (원)
-  count: number; // 해당 셀의 거래 건수
+  dayOfWeek: number;
+  hour: number;
+  amount: number;
+  count: number;
 }
 
 export interface ChannelBreakdown {
@@ -37,13 +37,21 @@ export interface ChannelBreakdown {
   ratio: number;
 }
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+
+const authHeaders = (): Record<string, string> => {
+  const token = localStorage.getItem("accessToken");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 export const csvApi = {
   uploadCsv: async (file: File): Promise<UploadResult> => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const res = await fetch("/api/payments/upload", {
+    const res = await fetch(`${API_BASE}/api/payments/upload`, {
       method: "POST",
+      headers: authHeaders(),
       body: formData,
     });
 
@@ -57,7 +65,9 @@ export const csvApi = {
     if (from) params.set("from", from);
     if (to) params.set("to", to);
 
-    const res = await fetch(`/api/payments/stats/daily?${params}`);
+    const res = await fetch(`${API_BASE}/api/payments/stats/daily?${params}`, {
+      headers: authHeaders(),
+    });
     const json: ApiResponse<DailyStats[]> = await res.json();
     if (json.status === "ERROR") throw new Error(json.message);
     return json.data;
@@ -71,7 +81,9 @@ export const csvApi = {
     if (from) params.set("from", from);
     if (to) params.set("to", to);
 
-    const res = await fetch(`/api/payments/stats/hourly-heatmap?${params}`);
+    const res = await fetch(`${API_BASE}/api/payments/stats/hourly-heatmap?${params}`, {
+      headers: authHeaders(),
+    });
     const json: ApiResponse<HourlyHeatmap[]> = await res.json();
     if (json.status === "ERROR") throw new Error(json.message);
     return json.data;
@@ -85,7 +97,9 @@ export const csvApi = {
     if (from) params.set("from", from);
     if (to) params.set("to", to);
 
-    const res = await fetch(`/api/payments/stats/channel-breakdown?${params}`);
+    const res = await fetch(`${API_BASE}/api/payments/stats/channel-breakdown?${params}`, {
+      headers: authHeaders(),
+    });
     const json: ApiResponse<ChannelBreakdown[]> = await res.json();
     if (json.status === "ERROR") throw new Error(json.message);
     return json.data;
