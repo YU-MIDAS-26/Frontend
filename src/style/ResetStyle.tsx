@@ -79,7 +79,7 @@ table {
   :root {
     --app-max-width: 1104px;
     --app-gutter: clamp(20px, 4vw, 48px);
-    --app-page-bg: #f5f7f9;
+    --app-page-bg: #f8fafc;
     --font-body: "ONE Mobile", system-ui, -apple-system, "Segoe UI", sans-serif;
     --font-title: "Midas Title", "ONE Mobile", system-ui, sans-serif;
   }

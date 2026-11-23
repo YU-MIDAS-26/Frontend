@@ -58,15 +58,15 @@ export const WeekSidePanel = styled.div`
 
 export const WeekToggleBtn = styled.button<{ $expanded: boolean }>`
   width: 100%;
-  border: 1px solid ${(p) => (p.$expanded ? "#5d839f" : "#c2ccd5")};
-  background: ${(p) => (p.$expanded ? "#dcebf5" : "#f0f4f7")};
-  color: #111;
-  border-radius: 8px;
-  padding: 8px 6px;
-  font-size: 11px;
-  font-weight: 700;
+  background: transparent;
+  border: none;
+  color: ${(p) => (p.$expanded ? "#2563eb" : "#94a3b8")};
+  border-radius: 0;
+  padding: 4px 0;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
-  line-height: 1.3;
+  line-height: 1.4;
 `;
 
 export const WeekSummaryBox = styled.div`

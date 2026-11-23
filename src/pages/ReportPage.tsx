@@ -3,15 +3,16 @@ import styled from "styled-components";
 
 const Page = styled.main`
   min-height: calc(1024px - 70px);
-  background: var(--app-page-bg);
+  background-color: #f8fafc;
   padding: 24px;
   box-sizing: border-box;
 `;
 
 const Header = styled.section`
-  background: #ffffff;
-  border: 1px solid #d0d4d9;
-  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
   padding: 16px;
   margin-bottom: 14px;
 `;
@@ -45,9 +46,10 @@ const Grid = styled.section`
 `;
 
 const Card = styled.article`
-  background: #ffffff;
-  border: 1px solid #d0d4d9;
-  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
   padding: 16px;
 `;
 
@@ -61,31 +63,36 @@ const CardTitle = styled.h3`
 const List = styled.ul`
   margin: 0;
   padding-left: 20px;
-  color: #202020;
-  font-size: 15px;
+  color: #334155;
+  font-size: 14px;
   line-height: 1.7;
 `;
 
 const Highlight = styled.div`
   margin-top: 12px;
-  padding: 10px 12px;
-  border-radius: 6px;
-  background: #e9f2f8;
-  border: 1px solid #c3d8e7;
-  color: #17212b;
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 14px 16px;
+  color: #0369a1;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.7;
 `;
 
 const BackButton = styled.button`
-  border: 1px solid #7ea0b7;
-  background: #7ea0b7;
-  color: #111111;
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 12px;
   font-size: 14px;
-  font-weight: 700;
-  padding: 8px 14px;
-  border-radius: 6px;
+  font-weight: 500;
   cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background-color: #e2e8f0;
+  }
 `;
 
 export default function ReportPage() {
