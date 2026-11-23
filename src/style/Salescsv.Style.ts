@@ -26,17 +26,17 @@ export const UploadBox = styled.div`
 `;
 
 export const FileLabel = styled.label`
-  background: #3b82f6;
+  background: #7ea0b7;
   color: #ffffff;
   padding: 10px 20px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 14px;
-  transition: background 0.2s;
+  transition: background 0.2s ease;
 
   &:hover {
-    background: #2563eb;
+    background: #6689a1;
   }
 `;
 
@@ -49,37 +49,40 @@ export const StatusBadge = styled.div<{
   $status: "idle" | "loading" | "success" | "error";
 }>`
   padding: 12px 20px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 14px;
   text-align: center;
 
   ${({ $status }) =>
     $status === "loading" &&
     css`
-      background: #fef3c7;
-      color: #d97706;
+      background: #fef9e7;
+      color: #9a6700;
+      border: 1px solid #f5e2a8;
     `}
 
   ${({ $status }) =>
     $status === "success" &&
     css`
-      background: #dcfce7;
-      color: #15803d;
+      background: #eef6f2;
+      color: #2c6e52;
+      border: 1px solid #cce5d9;
     `}
 
   ${({ $status }) =>
     $status === "error" &&
     css`
-      background: #fee2e2;
-      color: #b91c1c;
+      background: #fdf2f2;
+      color: #a63a3a;
+      border: 1px solid #f3d2d2;
     `}
 `;
 
 export const ResultSummary = styled.div`
   background: #f1f5f9;
   padding: 16px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
   line-height: 1.6;
   color: #334155;
@@ -152,7 +155,7 @@ export const FlexRow = styled.div`
 export const ChartPane = styled.div`
   flex: 1.3;
   width: 100%;
-  min-width: 0; /* Recharts/Echarts 내부 찌그러짐 방지용 꿀팁 */
+  min-width: 0;
 `;
 
 export const InsightPane = styled.div`
@@ -164,7 +167,7 @@ export const InsightPane = styled.div`
   background: #f8fafc;
   padding: 20px;
   border-radius: 8px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
 `;
 
 export const SidebarSection = styled.div`
@@ -176,7 +179,7 @@ export const SidebarSection = styled.div`
 export const SidebarTitle = styled.div`
   font-size: 13px;
   font-weight: 700;
-  color: #475569;
+  color: #334155;
 `;
 
 export const PresetGroup = styled.div`
@@ -201,22 +204,64 @@ export const PresetButton = styled.button`
   }
 `;
 
-export const InsightCard = styled.div<{ $type: "peak" | "idle" }>`
-  padding: 12px;
-  border-radius: 6px;
+export const InsightCard = styled.button<{
+  $type: "peak" | "idle";
+  $active?: boolean;
+}>`
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 8px;
   font-size: 12px;
-  background: ${({ $type }) => ($type === "peak" ? "#fff5f5" : "#f0fdf4")};
-  border-left: 4px solid
-    ${({ $type }) => ($type === "peak" ? "#ef4444" : "#22c55e")};
+  cursor: pointer;
+  background: ${({ $type, $active }) =>
+    $type === "peak"
+      ? $active
+        ? "#f7eedc"
+        : "#fbf6eb"
+      : $active
+        ? "#f0f5f8"
+        : "#ffffff"};
+  border: 1px solid
+    ${({ $type, $active }) =>
+      $type === "peak"
+        ? $active
+          ? "#dfc496"
+          : "#eadbc0"
+        : $active
+          ? "#7ea0b7"
+          : "#e2e8f0"};
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background: ${({ $type }) => ($type === "peak" ? "#f9f2e3" : "#f8fafc")};
+    border-color: ${({ $type }) => ($type === "peak" ? "#dfc496" : "#94a3b8")};
+  }
 
   .label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-weight: 700;
     margin-bottom: 4px;
-    color: ${({ $type }) => ($type === "peak" ? "#991b1b" : "#166534")};
+    color: ${({ $type }) => ($type === "peak" ? "#4f738e" : "#475569")};
+
+    &::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: ${({ $type }) => ($type === "peak" ? "#4f738e" : "#94a3b8")};
+      flex-shrink: 0;
+    }
   }
+
   .value {
-    color: #475569;
+    color: #334155;
     font-weight: 500;
+    padding-left: 12px;
   }
 `;
 
@@ -238,22 +283,28 @@ export const DonutContainer = styled.div`
 
 export const DonutCenterText = styled.div`
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 32px;
   display: flex;
   flex-direction: column;
-  items-center: center;
+  align-items: center;
   justify-content: center;
   pointer-events: none;
   text-align: center;
+  padding: 0 12px;
 
   .total-amount {
-    font-size: 20px;
-    font-weight: 800;
+    font-size: 16px;
+    font-weight: 700;
     color: #0f172a;
+    line-height: 1.25;
   }
   .label {
-    font-size: 12px;
+    font-size: 11px;
+    font-weight: 500;
     color: #64748b;
-    margin-top: 2px;
+    margin-top: 3px;
   }
 `;
