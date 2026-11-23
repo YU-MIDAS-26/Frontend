@@ -3,10 +3,11 @@ import styled from "styled-components";
 export const Wrapper = styled.div`
   width: 100%;
   display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 48px;
+  grid-template-columns: 320px 1fr;
+  gap: 36px;
+  align-items: start;
 
-  @media (max-width: 1100px) {
+  @media (max-width: 1024px) {
     grid-template-columns: 1fr;
   }
 `;
@@ -16,17 +17,18 @@ export const CalendarSection = styled.section`
 `;
 
 export const CalendarTitle = styled.h2`
-  margin: 0 0 18px;
+  margin: 0 0 16px;
   font-size: 18px;
   font-weight: 700;
+  color: #0f172a;
 `;
 
 export const CalendarBox = styled.div`
-  width: 320px;
+  width: 100%;
 
   .react-calendar {
     width: 100%;
-    border: 1px solid #dddddd;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 12px;
     font-family: "Segoe UI", "Noto Sans KR", sans-serif;
@@ -40,20 +42,28 @@ export const CalendarBox = styled.div`
   .react-calendar__tile {
     border-radius: 8px;
     height: 42px;
-  }
-
-  .react-calendar__tile--active {
-    background: #7ea0b7;
-    color: #ffffff;
+    font-size: 14px;
+    transition: background-color 0.15s ease;
   }
 
   .react-calendar__tile--now {
-    background: #e8f0f5;
+    background: #eef4f8;
+    color: #3b5970;
+    font-weight: 700;
+  }
+
+  .react-calendar__tile--active,
+  .react-calendar__tile--active:enabled:hover,
+  .react-calendar__tile--active:enabled:focus {
+    background: #7ea0b7 !important;
+    color: #ffffff !important;
+    font-weight: 700;
   }
 
   .react-calendar__month-view__weekdays {
     font-size: 13px;
     font-weight: 700;
+    color: #475569;
   }
 
   abbr {
@@ -69,110 +79,144 @@ export const ContentHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 `;
 
 export const Title = styled.h1`
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
+  color: #0f172a;
 `;
 
 export const AddButton = styled.button`
-  border: none;
-  background: transparent;
-  color: #111111;
-  font-size: 15px;
-  font-weight: 700;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid #7ea0b7;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #4f738e;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: #f0f5f8;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 export const RecordList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 `;
 
 export const RecordCard = styled.div`
-  width: 520px;
-  border: 1px solid #dddddd;
+  width: 100%;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 20px;
+  background: #f8fafc;
   box-sizing: border-box;
-
-  @media (max-width: 700px) {
-    width: 100%;
-  }
 `;
 
 export const RecordTop = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #e2e8f0;
 `;
 
 export const RecordName = styled.h3`
   margin: 0;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
+  color: #0f172a;
 `;
 
 export const ActionGroup = styled.div`
   display: flex;
-  gap: 10px;
+  gap: 8px;
 `;
 
 export const TextButton = styled.button`
-  border: none;
-  background: transparent;
-  color: #111111;
-  font-size: 15px;
-  font-weight: 700;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  padding: 0;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
 `;
 
 export const RecordForm = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 `;
 
 export const Field = styled.label`
   display: grid;
-  grid-template-columns: 90px 1fr;
+  grid-template-columns: 84px 1fr;
   align-items: center;
   gap: 12px;
 `;
 
 export const Label = styled.span`
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
+  color: #334155;
 `;
 
 export const Input = styled.input`
-  height: 36px;
-  border: 1px solid #bbbbbb;
-  border-radius: 8px;
-  padding: 0 10px;
-  box-sizing: border-box;
-  font-size: 14px;
-`;
-
-export const Select = styled.select`
-  height: 36px;
-  border: 1px solid #bbbbbb;
+  height: 38px;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   padding: 0 10px;
   box-sizing: border-box;
   font-size: 14px;
   background: #ffffff;
+  outline: none;
+
+  &:focus {
+    border-color: #7ea0b7;
+  }
+`;
+
+export const Select = styled.select`
+  height: 38px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  font-size: 14px;
+  background: #ffffff;
+  outline: none;
+
+  &:focus {
+    border-color: #7ea0b7;
+  }
 `;
 
 export const BreakField = styled.label`
   display: grid;
-  grid-template-columns: 18px 72px 1fr;
+  grid-template-columns: 18px 66px 1fr;
   align-items: center;
   gap: 10px;
 `;
@@ -180,6 +224,7 @@ export const BreakField = styled.label`
 export const Checkbox = styled.input`
   width: 16px;
   height: 16px;
+  accent-color: #7ea0b7;
 `;
 
 export const TimeGroup = styled.div`
@@ -189,41 +234,50 @@ export const TimeGroup = styled.div`
 `;
 
 export const TimeInput = styled.input`
-  width: 100px;
-  height: 36px;
-  border: 1px solid #bbbbbb;
+  width: 110px;
+  height: 38px;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
   padding: 0 8px;
   box-sizing: border-box;
+  background: #ffffff;
 
   &:disabled {
-    background: #eeeeee;
-    color: #999999;
+    background: #f1f5f9;
+    color: #94a3b8;
   }
 `;
 
 export const InfoList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 `;
 
 export const InfoRow = styled.div`
   display: grid;
-  grid-template-columns: 90px 1fr;
+  grid-template-columns: 84px 1fr;
   gap: 12px;
-  font-size: 15px;
+  font-size: 14px;
 
   span {
-    font-weight: 700;
+    font-weight: 600;
+    color: #64748b;
   }
 
   strong {
-    font-weight: 500;
+    font-weight: 600;
+    color: #0f172a;
   }
 `;
 
 export const EmptyText = styled.p`
-  font-size: 15px;
-  font-weight: 700;
+  margin: 0;
+  padding: 32px 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #94a3b8;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
 `;

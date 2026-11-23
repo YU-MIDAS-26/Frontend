@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Topbar from "./components/Topbar";
 import FloatingChatBot from "./components/FloatingChatBot";
+import { OneButtonAlert } from "./components/Common";
 import { useAuth } from "./contexts/AuthContext";
 
 const Page = styled.div`
@@ -33,9 +35,37 @@ const Content = styled.main`
   }
 `;
 
+const AlertOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+`;
+
+const AlertBox = styled.div`
+  width: min(100%, 360px);
+`;
+
 function App() {
   const navigate = useNavigate();
   const { isLoggedIn, logout } = useAuth();
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+  // 앱 전체의 기본 alert() 호출을 OneButtonAlert 팝업으로 자동 전환
+  useEffect(() => {
+    const originalAlert = window.alert;
+    window.alert = (message?: unknown) => {
+      setAlertMessage(String(message ?? ""));
+    };
+    return () => {
+      window.alert = originalAlert;
+    };
+  }, []);
+
   const handleMenuClick = (menu: string) => {
     if (menu === "재료 등록") {
       navigate("/ingredients");
@@ -79,6 +109,19 @@ function App() {
         </Content>
 
         <FloatingChatBot />
+
+        {alertMessage !== null && (
+          <AlertOverlay onClick={() => setAlertMessage(null)}>
+            <AlertBox onClick={(e) => e.stopPropagation()}>
+              <OneButtonAlert
+                title="알림"
+                description={alertMessage}
+                buttonText="확인"
+                onButtonClick={() => setAlertMessage(null)}
+              />
+            </AlertBox>
+          </AlertOverlay>
+        )}
       </Canvas>
     </Page>
   );
