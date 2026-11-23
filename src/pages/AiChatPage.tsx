@@ -25,15 +25,16 @@ const FloatingButton = styled.button`
   border: none;
   background: #7ea0b7;
   color: white;
-  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
 
   &:hover {
     transform: scale(1.05);
   }
-
-  transition: all 0.2s ease;
 `;
 
 /* ===== 채팅창 ===== */
@@ -221,8 +222,39 @@ export default function FloatingChatBot() {
         </InputArea>
       </ChatBox>
 
-      <FloatingButton onClick={() => setOpen((prev) => !prev)}>
-        챗봇
+      <FloatingButton
+        type="button"
+        aria-label={open ? "챗봇 닫기" : "챗봇 열기"}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        {open ? (
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        ) : (
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        )}
       </FloatingButton>
     </Wrapper>
   );
