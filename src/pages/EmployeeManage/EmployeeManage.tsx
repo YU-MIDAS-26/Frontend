@@ -258,17 +258,47 @@ export default function EmployeeManage() {
           ) : (
             <>
               <S.ContentHeader>
-                <S.Title>{isAddingNew ? "새 직원 등록" : "직원 정보"}</S.Title>
+                <S.TitleGroup>
+                  <S.Title>
+                    {isAddingNew
+                      ? "새 직원 등록"
+                      : isEditing
+                        ? "직원 정보 수정"
+                        : "직원 정보"}
+                  </S.Title>
+                  {isEditing && (
+                    <S.RequiredNotice>
+                      {isEditing && <S.RequiredMark>*</S.RequiredMark>} 필수
+                      입력 항목
+                    </S.RequiredNotice>
+                  )}
+                </S.TitleGroup>
 
                 {actualSelectedId && !isAddingNew && (
                   <S.ActionGroup>
-                    {/* ✅ 수정 클릭 시 handleStartEditClick 함수로 브릿지 연결 */}
-                    <S.TextButton type="button" onClick={handleStartEditClick}>
-                      수정
-                    </S.TextButton>
-                    <S.TextButton type="button" onClick={handleDeleteClick}>
-                      삭제
-                    </S.TextButton>
+                    {isEditing ? (
+                      <S.TextButton
+                        type="button"
+                        onClick={() => {
+                          setIsEditing(false);
+                          setEditFormState(null);
+                        }}
+                      >
+                        취소
+                      </S.TextButton>
+                    ) : (
+                      <>
+                        <S.TextButton
+                          type="button"
+                          onClick={handleStartEditClick}
+                        >
+                          수정
+                        </S.TextButton>
+                        <S.TextButton type="button" onClick={handleDeleteClick}>
+                          삭제
+                        </S.TextButton>
+                      </>
+                    )}
                   </S.ActionGroup>
                 )}
               </S.ContentHeader>
@@ -276,7 +306,9 @@ export default function EmployeeManage() {
               {actualSelectedId || isAddingNew ? (
                 <S.Form onSubmit={(e) => e.preventDefault()}>
                   <S.Field>
-                    <S.Label>이름 *</S.Label>
+                    <S.Label>
+                      이름{isEditing && <S.RequiredMark>*</S.RequiredMark>}
+                    </S.Label>
                     <S.Input
                       value={formState.name}
                       disabled={!isEditing}
@@ -285,7 +317,9 @@ export default function EmployeeManage() {
                   </S.Field>
 
                   <S.Field>
-                    <S.Label>생년월일 *</S.Label>
+                    <S.Label>
+                      생년월일{isEditing && <S.RequiredMark>*</S.RequiredMark>}
+                    </S.Label>
                     <S.Input
                       type="date"
                       value={formState.birthDate}
@@ -297,7 +331,9 @@ export default function EmployeeManage() {
                   </S.Field>
 
                   <S.Field>
-                    <S.Label>전화번호 *</S.Label>
+                    <S.Label>
+                      전화번호{isEditing && <S.RequiredMark>*</S.RequiredMark>}
+                    </S.Label>
                     <S.Input
                       value={formState.phoneNumber}
                       disabled={!isEditing}
@@ -324,30 +360,38 @@ export default function EmployeeManage() {
                   </S.Field>
 
                   <S.Field>
-                    <S.Label>급여 방식 *</S.Label>
-                    <S.PayTypeGroup>
-                      <S.PayTypeButton
-                        type="button"
-                        disabled={!isEditing}
-                        $active={formState.payType === "DAILY"}
-                        onClick={() => handleFormChange("payType", "DAILY")}
-                      >
-                        일급
-                      </S.PayTypeButton>
-                      <S.PayTypeButton
-                        type="button"
-                        disabled={!isEditing}
-                        $active={formState.payType === "HOURLY"}
-                        onClick={() => handleFormChange("payType", "HOURLY")}
-                      >
-                        시급
-                      </S.PayTypeButton>
-                    </S.PayTypeGroup>
+                    <S.Label>
+                      급여 방식{isEditing && <S.RequiredMark>*</S.RequiredMark>}
+                    </S.Label>
+                    {isEditing ? (
+                      <S.PayTypeGroup>
+                        <S.PayTypeButton
+                          type="button"
+                          $active={formState.payType === "DAILY"}
+                          onClick={() => handleFormChange("payType", "DAILY")}
+                        >
+                          일급
+                        </S.PayTypeButton>
+                        <S.PayTypeButton
+                          type="button"
+                          $active={formState.payType === "HOURLY"}
+                          onClick={() => handleFormChange("payType", "HOURLY")}
+                        >
+                          시급
+                        </S.PayTypeButton>
+                      </S.PayTypeGroup>
+                    ) : (
+                      <S.Input
+                        value={formState.payType === "DAILY" ? "일급" : "시급"}
+                        disabled
+                      />
+                    )}
                   </S.Field>
 
                   <S.Field>
                     <S.Label>
-                      {formState.payType === "DAILY" ? "일급" : "시급"} *
+                      {formState.payType === "DAILY" ? "일급" : "시급"}
+                      {isEditing && <S.RequiredMark>*</S.RequiredMark>}
                     </S.Label>
                     <S.Input
                       value={formState.payAmount}
