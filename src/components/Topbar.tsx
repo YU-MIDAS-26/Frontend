@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 type TopbarProps = {
   isLoggedIn?: boolean;
@@ -15,15 +15,16 @@ type TopbarProps = {
 
 const Bar = styled.header`
   width: 100%;
-  min-height: 70px;
-  background: #7ea0b7;
+  min-height: 68px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
   padding-inline: var(--app-gutter);
   box-sizing: border-box;
 `;
 
 const BarInner = styled.div`
   width: min(100%, var(--app-max-width));
-  min-height: 70px;
+  min-height: 68px;
   margin: 0 auto;
   padding: 12px 0;
   display: grid;
@@ -49,31 +50,47 @@ const LeftSection = styled(Section)`
 
 const CenterSection = styled(Section)`
   justify-content: center;
-  gap: 36px;
+  gap: 32px;
   flex-wrap: wrap;
 `;
 
 const RightSection = styled(Section)`
   justify-content: flex-end;
-  gap: 16px;
+  gap: 20px;
   flex-wrap: wrap;
 `;
 
-const ActionButton = styled.button`
+const ActionButton = styled.button<{ $active?: boolean }>`
   border: none;
   background: transparent;
-  color: #111111;
-  font-size: 16px;
+  color: ${({ $active }) => ($active ? "#4f738e" : "#334155")};
+  font-size: 15px;
   font-family: "Segoe UI", "Noto Sans KR", sans-serif;
-  font-weight: 700;
+  font-weight: ${({ $active }) => ($active ? 700 : 600)};
   line-height: 1;
   cursor: pointer;
-  padding: 0;
+  padding: 8px 4px;
+  border-bottom: 2px solid
+    ${({ $active }) => ($active ? "#7ea0b7" : "transparent")};
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    color: #4f738e;
+  }
 `;
 
-const LogoButton = styled(ActionButton)`
-  font-weight: 700;
-  letter-spacing: 0.2px;
+const LogoButton = styled.button`
+  border: none;
+  background: transparent;
+  color: #3b5970;
+  font-size: 20px;
+  font-family: "Segoe UI", "Noto Sans KR", sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  cursor: pointer;
+  padding: 0;
 `;
 
 const ResponsiveLeftSection = styled(LeftSection)`
@@ -98,6 +115,12 @@ const ResponsiveRightSection = styled(RightSection)`
   }
 `;
 
+const MENU_PATH_MAP: Record<string, string> = {
+  "재료 등록": "/ingredients",
+  "매출 관리": "/sales-check",
+  "직원 관리": "/employee-manage",
+};
+
 export default function Topbar({
   isLoggedIn = false,
   siteName = "B-SIGHT",
@@ -110,18 +133,12 @@ export default function Topbar({
   onMyPageClick,
 }: TopbarProps) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const handleMenuClick = (menu: string) => {
-    if (menu === "재료 등록") {
-      navigate("/ingredients");
-      return;
-    }
-    if (menu === "매출 관리") {
-      navigate("/sales-check");
-      return;
-    }
-    if (menu === "직원 관리") {
-      navigate("/employee-manage");
+    const targetPath = MENU_PATH_MAP[menu];
+    if (targetPath) {
+      navigate(targetPath);
       return;
     }
     onMenuClick?.(menu);
@@ -174,21 +191,32 @@ export default function Topbar({
 
         <ResponsiveCenterSection>
           {isLoggedIn &&
-            menus.map((menu) => (
-              <ActionButton
-                key={menu}
-                type="button"
-                onClick={() => handleMenuClick(menu)}
-              >
-                {menu}
-              </ActionButton>
-            ))}
+            menus.map((menu) => {
+              const targetPath = MENU_PATH_MAP[menu];
+              const isActive = targetPath
+                ? pathname.startsWith(targetPath)
+                : false;
+              return (
+                <ActionButton
+                  key={menu}
+                  type="button"
+                  $active={isActive}
+                  onClick={() => handleMenuClick(menu)}
+                >
+                  {menu}
+                </ActionButton>
+              );
+            })}
         </ResponsiveCenterSection>
 
         <ResponsiveRightSection>
           {isLoggedIn ? (
             <>
-              <ActionButton type="button" onClick={handleMyPageClick}>
+              <ActionButton
+                type="button"
+                $active={pathname.startsWith("/mypage")}
+                onClick={handleMyPageClick}
+              >
                 마이페이지
               </ActionButton>
               <ActionButton type="button" onClick={handleLogoutClick}>
@@ -197,10 +225,18 @@ export default function Topbar({
             </>
           ) : (
             <>
-              <ActionButton type="button" onClick={handleLoginClick}>
+              <ActionButton
+                type="button"
+                $active={pathname.startsWith("/login")}
+                onClick={handleLoginClick}
+              >
                 로그인
               </ActionButton>
-              <ActionButton type="button" onClick={handleSignupClick}>
+              <ActionButton
+                type="button"
+                $active={pathname.startsWith("/register")}
+                onClick={handleSignupClick}
+              >
                 회원가입
               </ActionButton>
             </>

@@ -17,26 +17,39 @@ import {
 
 const Page = styled.main`
   min-height: calc(100vh - 70px);
-  background: var(--app-page-bg);
-  padding: 24px;
+  background: var(--app-page-bg, #f8fafc);
+  padding: 28px 24px 48px;
+`;
+
+const Container = styled.div`
+  max-width: 1120px;
+  margin: 0 auto;
 `;
 
 const Section = styled.section`
   background: #ffffff;
-  border: 1px solid #d0d4d9;
-  border-radius: 8px;
-  padding: 18px;
-  margin-bottom: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
 `;
 
 const Title = styled.h2`
   margin: 0 0 16px;
-  font-size: 22px;
+  font-size: 19px;
+  font-weight: 700;
+  color: #0f172a;
+`;
+
+const SubDesc = styled.p`
+  font-size: 13px;
+  color: #64748b;
+  margin: -10px 0 18px;
 `;
 
 const FormGrid = styled.div`
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1.2fr;
+  grid-template-columns: 2fr 1fr 1fr 180px;
   gap: 10px;
   align-items: center;
 
@@ -47,15 +60,24 @@ const FormGrid = styled.div`
 
 const Select = styled.select`
   width: 100%;
-  border: none;
-  background: #c8d7e1;
+  height: 44px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 0 14px;
   font-size: 14px;
+  color: #0f172a;
   outline: none;
-  color: black;
-  height: 48px;
   box-sizing: border-box;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:focus {
+    border-color: #7ea0b7;
+    box-shadow: 0 0 0 3px rgba(126, 160, 183, 0.2);
+  }
 `;
 
 const CardGrid = styled.div`
@@ -64,14 +86,19 @@ const CardGrid = styled.div`
 `;
 
 const Card = styled.div`
-  border: 1px solid #d0d4d9;
-  border-radius: 8px;
-  padding: 14px;
-  background: #fafbfd;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 18px;
+  background: #ffffff;
   display: flex;
   justify-content: space-between;
   gap: 16px;
   align-items: center;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+  }
 `;
 
 const StoreInfo = styled.div`
@@ -87,58 +114,33 @@ const EllipsisText = styled.strong`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  word-break: break-all;
   font-size: 15px;
+  color: #0f172a;
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
+  align-items: center;
   gap: 8px;
   flex-shrink: 0;
 `;
 
-const FixedWidthButtonWrapper = styled.div`
-  width: 110px;
-  height: 40px;
-  flex-shrink: 0;
-`;
-
-const FlexButtonWrapper = styled.div`
-  min-width: 60px;
-  height: 38px;
-`;
-
-const LargeButtonWrapper = styled(FlexButtonWrapper)`
-  min-width: 95px;
-`;
-
-const ActionButtonWrapper = styled.div`
-  width: 180px;
-  height: 48px;
-  @media (max-width: 900px) {
-    width: 100%;
-  }
-`;
-
-const Small = styled.span`
-  color: #555;
-  font-size: 13px;
-`;
-
-const DeleteButton = styled.button`
-  min-width: 60px;
-  height: 38px;
-  border: none;
-  border-radius: 8px;
-  background: #f87171;
-  color: white;
+const SmallActionBtn = styled.button<{ $danger?: boolean }>`
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 10px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: 0.2s;
+  background: #ffffff;
+  border: 1px solid ${({ $danger }) => ($danger ? "#fca5a5" : "#cbd5e1")};
+  color: ${({ $danger }) => ($danger ? "#ef4444" : "#475569")};
+  transition: all 0.15s ease;
 
   &:hover {
-    background: #ef4444;
+    background: ${({ $danger }) => ($danger ? "#fef2f2" : "#f8fafc")};
+    border-color: ${({ $danger }) => ($danger ? "#ef4444" : "#94a3b8")};
+    color: ${({ $danger }) => ($danger ? "#dc2626" : "#0f172a")};
   }
 
   &:active {
@@ -146,38 +148,144 @@ const DeleteButton = styled.button`
   }
 `;
 
+const FixedWidthButtonWrapper = styled.div`
+  width: 106px;
+  height: 36px;
+  flex-shrink: 0;
+`;
+
+const ActionPillWrapper = styled.div`
+  min-width: 92px;
+  height: 36px;
+`;
+
+const ActionButtonWrapper = styled.div`
+  width: 100%;
+  height: 44px;
+`;
+
+const Small = styled.span`
+  color: #64748b;
+  font-size: 13px;
+`;
+
+/* ===== KAMIS 시세 분석실 전용 스타일 ===== */
+
+const KamisSearchRow = styled.div`
+  display: grid;
+  grid-template-columns: 140px 1fr 110px;
+  gap: 10px;
+  max-width: 640px;
+  margin-bottom: 22px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const KamisHeaderCard = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 16px;
+`;
+
+const KamisSummaryGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const SummaryBox = styled.div<{ $highlight?: boolean }>`
+  padding: 16px 18px;
+  border-radius: 10px;
+  border: 1px solid ${({ $highlight }) => ($highlight ? "#bfd3e0" : "#e2e8f0")};
+  background: ${({ $highlight }) => ($highlight ? "#f2f7fa" : "#ffffff")};
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const SummaryLabel = styled.span`
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+`;
+
+const SummaryValue = styled.strong<{ $tone?: "up" | "down" | "neutral" }>`
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: ${({ $tone }) =>
+    $tone === "up" ? "#dc2626" : $tone === "down" ? "#2563eb" : "#0f172a"};
+`;
+
 const ChartContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 14px;
-  margin-top: 20px;
-  background: #f8fafc;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px dashed #cbd5e1;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
 `;
 
 const ChartBarRow = styled.div`
   display: grid;
-  grid-template-columns: 100px 1fr 100px;
+  grid-template-columns: 84px 1fr 96px;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+`;
+
+const ChartLabel = styled.span<{ $bold?: boolean; $accent?: boolean }>`
+  font-size: 13px;
+  font-weight: ${({ $bold }) => ($bold ? 700 : 500)};
+  color: ${({ $accent, $bold }) =>
+    $accent ? "#0f766e" : $bold ? "#0f172a" : "#475569"};
 `;
 
 const BarWrapper = styled.div`
-  background: #e2e8f0;
-  border-radius: 6px;
-  height: 24px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  height: 12px;
   width: 100%;
   overflow: hidden;
 `;
 
-const ActiveBar = styled.div<{ $widthPercent: number }>`
+const ActiveBar = styled.div<{
+  $widthPercent: number;
+  $variant?: "today" | "avg" | "past";
+}>`
   width: ${(props) => props.$widthPercent}%;
   height: 100%;
-  background: linear-gradient(90deg, #7ea0b7, #4f738e);
-  border-radius: 6px;
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 999px;
+  background: ${({ $variant }) =>
+    $variant === "today"
+      ? "#4f738e"
+      : $variant === "avg"
+        ? "#14b8a6"
+        : "#94b4c9"};
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+`;
+
+const PriceText = styled.span<{ $bold?: boolean; $accent?: boolean }>`
+  text-align: right;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: ${({ $bold }) => ($bold ? 700 : 500)};
+  color: ${({ $accent, $bold }) =>
+    $accent ? "#0f766e" : $bold ? "#0f172a" : "#334155"};
 `;
 
 interface IngredientItem extends IngredientData {
@@ -397,9 +505,9 @@ export default function IngredientPage() {
     }
   };
 
-  const calculateBarWidth = (currentPrice: number, maxPrice: number) => {
+  const calculateBarWidth = (currentPrice: number | null, maxPrice: number) => {
     if (!currentPrice || !maxPrice) return 0;
-    return Math.max(8, Math.round((currentPrice / maxPrice) * 100));
+    return Math.max(6, Math.round((currentPrice / maxPrice) * 100));
   };
 
   const maxPeriodPrice = useMemo(() => {
@@ -425,358 +533,340 @@ export default function IngredientPage() {
     );
   }, [searchedPriceData]);
 
+  const diffFromAvg = useMemo(() => {
+    if (
+      !searchedPriceData ||
+      !searchedPriceData.priceToday ||
+      !searchedPriceData.priceAvgYear
+    ) {
+      return null;
+    }
+    const diff = searchedPriceData.priceToday - searchedPriceData.priceAvgYear;
+    const rate = ((diff / searchedPriceData.priceAvgYear) * 100).toFixed(1);
+    return { diff, rate };
+  }, [searchedPriceData]);
+
+  const chartRows = useMemo(() => {
+    if (!searchedPriceData) return [];
+    return [
+      {
+        label: "당일 시세",
+        price: searchedPriceData.priceToday,
+        variant: "today" as const,
+      },
+      {
+        label: "1일 전",
+        price: searchedPriceData.price1dAgo,
+        variant: "past" as const,
+      },
+      {
+        label: "1주 전",
+        price: searchedPriceData.price1wAgo,
+        variant: "past" as const,
+      },
+      {
+        label: "2주 전",
+        price: searchedPriceData.price2wAgo,
+        variant: "past" as const,
+      },
+      {
+        label: "1달 전",
+        price: searchedPriceData.price1mAgo,
+        variant: "past" as const,
+      },
+      {
+        label: "1년 전",
+        price: searchedPriceData.price1yAgo,
+        variant: "past" as const,
+      },
+      {
+        label: "평년 평균가",
+        price: searchedPriceData.priceAvgYear,
+        variant: "avg" as const,
+      },
+    ];
+  }, [searchedPriceData]);
+
   return (
     <Page>
-      <Section>
-        <Title>재료 등록</Title>
-        <FormGrid>
-          <TextField
-            placeholder="재료명 예: 양파"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <TextField
-            type="number"
-            placeholder="수량/크기 예: 10"
-            value={unitValue}
-            onChange={(e) => setUnitValue(e.target.value)}
-          />
-          <Select
-            value={unitType}
-            onChange={(e) => setUnitType(e.target.value)}
-          >
-            <option value="kg">kg</option>
-            <option value="g">g</option>
-            <option value="개">개</option>
-            <option value="ml">ml</option>
-            <option value="L">L</option>
-          </Select>
-          <ActionButtonWrapper>
-            <ButtonSelected onClick={handleAdd}>
-              {editingId ? "재료 수정하기" : "사용하는 재료 추가하기"}
-            </ButtonSelected>
-          </ActionButtonWrapper>
-        </FormGrid>
-      </Section>
+      <Container>
+        <Section>
+          <Title>재료 등록</Title>
+          <FormGrid>
+            <TextField
+              placeholder="재료명 예: 양파"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <TextField
+              type="number"
+              placeholder="수량/크기 예: 10"
+              value={unitValue}
+              onChange={(e) => setUnitValue(e.target.value)}
+            />
+            <Select
+              value={unitType}
+              onChange={(e) => setUnitType(e.target.value)}
+            >
+              <option value="kg">kg</option>
+              <option value="g">g</option>
+              <option value="개">개</option>
+              <option value="ml">ml</option>
+              <option value="L">L</option>
+            </Select>
+            <ActionButtonWrapper>
+              <ButtonSelected onClick={handleAdd}>
+                {editingId ? "재료 수정하기" : "사용하는 재료 추가하기"}
+              </ButtonSelected>
+            </ActionButtonWrapper>
+          </FormGrid>
+        </Section>
 
-      <Section>
-        <Title>등록된 재료</Title>
-        <CardGrid>
-          {ingredients.length === 0 ? (
-            <Small>아직 등록된 재료가 없습니다.</Small>
-          ) : (
-            ingredients.map((item) => (
-              <div key={item.id}>
-                <Card>
-                  <StoreInfo>
-                    <EllipsisText>{item.name}</EllipsisText>
-                    <Small>단위/기준: {item.unit}</Small>
-                  </StoreInfo>
+        <Section>
+          <Title>등록된 재료</Title>
+          <CardGrid>
+            {ingredients.length === 0 ? (
+              <Small>아직 등록된 재료가 없습니다.</Small>
+            ) : (
+              ingredients.map((item) => (
+                <div key={item.id}>
+                  <Card>
+                    <StoreInfo>
+                      <EllipsisText>{item.name}</EllipsisText>
+                      <Small>단위/기준: {item.unit}</Small>
+                    </StoreInfo>
 
-                  <ButtonGroup>
-                    <LargeButtonWrapper style={{ minWidth: "85px" }}>
-                      <ButtonMain
-                        style={{ background: "#4f738e", color: "white" }}
-                        onClick={() => {
-                          setPriceSearchKeyword(item.name);
-                          handleFetchKamisPrice(item.name);
-                        }}
+                    <ButtonGroup>
+                      <ActionPillWrapper>
+                        <ButtonSub
+                          onClick={() => {
+                            setPriceSearchKeyword(item.name);
+                            handleFetchKamisPrice(item.name);
+                          }}
+                        >
+                          시세 분석
+                        </ButtonSub>
+                      </ActionPillWrapper>
+                      <ActionPillWrapper>
+                        {item.showStores ? (
+                          <ButtonMain onClick={() => handleShowStores(item)}>
+                            검색 닫기
+                          </ButtonMain>
+                        ) : (
+                          <ButtonSelected
+                            onClick={() => handleShowStores(item)}
+                          >
+                            최저가 검색
+                          </ButtonSelected>
+                        )}
+                      </ActionPillWrapper>
+                      <SmallActionBtn
+                        type="button"
+                        onClick={() => handleEdit(item)}
                       >
-                        시세 분석
-                      </ButtonMain>
-                    </LargeButtonWrapper>
-                    <FlexButtonWrapper>
-                      <ButtonSub onClick={() => handleEdit(item)}>
                         수정
-                      </ButtonSub>
-                    </FlexButtonWrapper>
-                    <FlexButtonWrapper>
-                      <DeleteButton onClick={() => handleDelete(item.id)}>
+                      </SmallActionBtn>
+                      <SmallActionBtn
+                        type="button"
+                        $danger
+                        onClick={() => handleDelete(item.id)}
+                      >
                         삭제
-                      </DeleteButton>
-                    </FlexButtonWrapper>
-                    <LargeButtonWrapper>
-                      {item.showStores ? (
-                        <ButtonMain onClick={() => handleShowStores(item)}>
-                          검색 닫기
-                        </ButtonMain>
-                      ) : (
-                        <ButtonSelected onClick={() => handleShowStores(item)}>
-                          최저가 검색
-                        </ButtonSelected>
-                      )}
-                    </LargeButtonWrapper>
-                  </ButtonGroup>
-                </Card>
+                      </SmallActionBtn>
+                    </ButtonGroup>
+                  </Card>
 
-                {item.loadingStores && (
-                  <Section style={{ marginTop: "10px" }}>
-                    <Small>네이버 최저가 정보를 가져오는 중입니다...</Small>
-                  </Section>
-                )}
+                  {item.loadingStores && (
+                    <Section style={{ marginTop: "10px", marginBottom: "0" }}>
+                      <Small>네이버 최저가 정보를 가져오는 중입니다...</Small>
+                    </Section>
+                  )}
 
-                {item.showStores && item.stores && (
-                  <Section style={{ marginTop: "10px" }}>
-                    <Title>{item.name} 최저가 구매처 TOP 5</Title>
-                    <CardGrid>
-                      {item.stores.length === 0 ? (
-                        <Small>검색된 최저가 상품이 없습니다.</Small>
-                      ) : (
-                        item.stores.map((store, index) => (
-                          <Card key={index}>
-                            <StoreInfo>
-                              <EllipsisText
-                                dangerouslySetInnerHTML={{
-                                  __html: `${index + 1}. [${store.mallName || "쇼핑몰"}] ${store.title}`,
-                                }}
-                              />
-                              <Small>
-                                가격: {store.lowestPrice.toLocaleString()}원
-                              </Small>
-                            </StoreInfo>
+                  {item.showStores && item.stores && (
+                    <Section style={{ marginTop: "10px", marginBottom: "0" }}>
+                      <Title>{item.name} 최저가 구매처 TOP 5</Title>
+                      <CardGrid>
+                        {item.stores.length === 0 ? (
+                          <Small>검색된 최저가 상품이 없습니다.</Small>
+                        ) : (
+                          item.stores.map((store, index) => (
+                            <Card key={index}>
+                              <StoreInfo>
+                                <EllipsisText
+                                  dangerouslySetInnerHTML={{
+                                    __html: `${index + 1}. [${store.mallName || "쇼핑몰"}] ${store.title}`,
+                                  }}
+                                />
+                                <Small>
+                                  가격: {store.lowestPrice.toLocaleString()}원
+                                </Small>
+                              </StoreInfo>
 
-                            <FixedWidthButtonWrapper>
-                              <ButtonSelected
-                                onClick={() =>
-                                  window.open(store.link, "_blank")
-                                }
-                              >
-                                구매처 이동
-                              </ButtonSelected>
-                            </FixedWidthButtonWrapper>
-                          </Card>
-                        ))
-                      )}
-                    </CardGrid>
-                  </Section>
-                )}
-              </div>
-            ))
-          )}
-        </CardGrid>
-      </Section>
+                              <FixedWidthButtonWrapper>
+                                <ButtonSelected
+                                  onClick={() =>
+                                    window.open(store.link, "_blank")
+                                  }
+                                >
+                                  구매처 이동
+                                </ButtonSelected>
+                              </FixedWidthButtonWrapper>
+                            </Card>
+                          ))
+                        )}
+                      </CardGrid>
+                    </Section>
+                  )}
+                </div>
+              ))
+            )}
+          </CardGrid>
+        </Section>
 
-      <Section style={{ borderTop: "3px solid #7ea0b7", marginTop: "30px" }}>
-        <Title>전국 농산물 실시간 시세 분석 (KAMIS)</Title>
-        <p
-          style={{
-            fontSize: "13px",
-            color: "#666",
-            marginTop: "-8px",
-            marginBottom: "16px",
-          }}
-        >
-          등록된 재료의 [시세 분석] 단추를 누르거나, 궁금한 농산물 품목명을
-          아래에 직접 수기로 타이핑해서 검색해 보세요.
-        </p>
+        <Section>
+          <Title>전국 농산물 실시간 시세 분석 (KAMIS)</Title>
+          <SubDesc>
+            등록된 재료의 [시세 분석] 버튼을 누르거나, 궁금한 농산물 품목명을
+            직접 검색해 보세요.
+          </SubDesc>
 
-        <div style={{ marginBottom: "12px", maxWidth: "200px" }}>
-          <Select
-            value={categoryCode}
-            onChange={(e) => setCategoryCode(e.target.value)}
-          >
-            <option value="">전체</option>
-            <option value="200">채소</option>
-            <option value="300">과일</option>
-            <option value="400">육류</option>
-            <option value="500">수산물</option>
-          </Select>
-        </div>
+          <KamisSearchRow>
+            <Select
+              value={categoryCode}
+              onChange={(e) => setCategoryCode(e.target.value)}
+            >
+              <option value="">전체 부류</option>
+              <option value="100">식량작물</option>
+              <option value="200">채소</option>
+              <option value="400">과일</option>
+              <option value="500">축산물</option>
+              <option value="600">수산물</option>
+            </Select>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            marginBottom: "20px",
-            maxWidth: "500px",
-          }}
-        >
-          <div style={{ flex: 1 }}>
             <TextField
               placeholder="품목명 직접 입력 (예: 배추, 상추, 양파)"
               value={priceSearchKeyword}
               onChange={(e) => setPriceSearchKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleFetchKamisPrice(priceSearchKeyword);
+                }
+              }}
             />
-          </div>
-          <div style={{ width: "100px", height: "48px" }}>
-            <ButtonSelected
-              onClick={() => handleFetchKamisPrice(priceSearchKeyword)}
-            >
-              시세 검색
-            </ButtonSelected>
-          </div>
-        </div>
 
-        {isPriceLoading && (
-          <Small>KAMIS 공공 시세 데이터베이스를 정밀 분석 중입니다...</Small>
-        )}
+            <ActionButtonWrapper>
+              <ButtonSelected
+                onClick={() => handleFetchKamisPrice(priceSearchKeyword)}
+              >
+                시세 검색
+              </ButtonSelected>
+            </ActionButtonWrapper>
+          </KamisSearchRow>
 
-        {searchedPriceData && (
-          <div>
+          {isPriceLoading && (
+            <Small>KAMIS 공공 시세 데이터를 불러오는 중입니다...</Small>
+          )}
+
+          {searchedPriceData && (
+            <div>
+              <KamisHeaderCard>
+                <div>
+                  <strong style={{ fontSize: "16px", color: "#0f172a" }}>
+                    {searchedPriceData.itemName} ({searchedPriceData.kindName})
+                    · {searchedPriceData.rank}
+                  </strong>
+                </div>
+                <Small>
+                  조사일자 {searchedPriceData.collectedDate} · 단위{" "}
+                  {searchedPriceData.unit}
+                </Small>
+              </KamisHeaderCard>
+
+              <KamisSummaryGrid>
+                <SummaryBox $highlight>
+                  <SummaryLabel>당일 시세</SummaryLabel>
+                  <SummaryValue>
+                    {searchedPriceData.priceToday != null
+                      ? `${searchedPriceData.priceToday.toLocaleString()}원`
+                      : "-"}
+                  </SummaryValue>
+                </SummaryBox>
+
+                <SummaryBox>
+                  <SummaryLabel>평년 평균가</SummaryLabel>
+                  <SummaryValue>
+                    {searchedPriceData.priceAvgYear != null
+                      ? `${searchedPriceData.priceAvgYear.toLocaleString()}원`
+                      : "-"}
+                  </SummaryValue>
+                </SummaryBox>
+
+                <SummaryBox>
+                  <SummaryLabel>평년 대비</SummaryLabel>
+                  <SummaryValue
+                    $tone={
+                      diffFromAvg
+                        ? diffFromAvg.diff > 0
+                          ? "up"
+                          : diffFromAvg.diff < 0
+                            ? "down"
+                            : "neutral"
+                        : "neutral"
+                    }
+                  >
+                    {diffFromAvg
+                      ? `${diffFromAvg.diff > 0 ? "+" : ""}${diffFromAvg.rate}%`
+                      : "-"}
+                  </SummaryValue>
+                </SummaryBox>
+              </KamisSummaryGrid>
+
+              <ChartContainer>
+                {chartRows.map((row) => (
+                  <ChartBarRow key={row.label}>
+                    <ChartLabel
+                      $bold={row.variant === "today" || row.variant === "avg"}
+                      $accent={row.variant === "avg"}
+                    >
+                      {row.label}
+                    </ChartLabel>
+                    <BarWrapper>
+                      <ActiveBar
+                        $variant={row.variant}
+                        $widthPercent={calculateBarWidth(
+                          row.price,
+                          maxPeriodPrice,
+                        )}
+                      />
+                    </BarWrapper>
+                    <PriceText
+                      $bold={row.variant === "today" || row.variant === "avg"}
+                      $accent={row.variant === "avg"}
+                    >
+                      {row.price != null
+                        ? `${row.price.toLocaleString()}원`
+                        : "-"}
+                    </PriceText>
+                  </ChartBarRow>
+                ))}
+              </ChartContainer>
+            </div>
+          )}
+
+          {!searchedPriceData && !isPriceLoading && (
             <div
               style={{
-                background: "#eef4f8",
-                padding: "14px",
-                borderRadius: "8px",
-                marginBottom: "16px",
+                textAlign: "center",
+                padding: "36px 0",
+                color: "#94a3b8",
+                fontSize: "14px",
               }}
             >
-              <strong style={{ fontSize: "16px", color: "#1e293b" }}>
-                🌾 {searchedPriceData.itemName} ({searchedPriceData.kindName}) -{" "}
-                {searchedPriceData.rank}
-              </strong>
-              <div
-                style={{ fontSize: "13px", color: "#4f6270", marginTop: "4px" }}
-              >
-                최근 조사일자: {searchedPriceData.collectedDate} | 조사단위:{" "}
-                {searchedPriceData.unit}
-              </div>
+              분석할 농산물 품목을 선택하거나 검색해 주세요.
             </div>
-
-            <Title style={{ fontSize: "16px", marginBottom: "12px" }}>
-              기간별 가격 추이 비교 그래프
-            </Title>
-            <ChartContainer>
-              <ChartBarRow>
-                <Small style={{ fontWeight: "bold" }}>당일 시세</Small>
-                <BarWrapper>
-                  <ActiveBar
-                    $widthPercent={calculateBarWidth(
-                      searchedPriceData.priceToday,
-                      maxPeriodPrice,
-                    )}
-                  />
-                </BarWrapper>
-                <strong>
-                  {searchedPriceData.priceToday != null
-                    ? `${searchedPriceData.priceToday.toLocaleString()}원`
-                    : "-"}
-                </strong>
-              </ChartBarRow>
-
-              <ChartBarRow>
-                <Small>1일 전</Small>
-                <BarWrapper>
-                  <ActiveBar
-                    $widthPercent={calculateBarWidth(
-                      searchedPriceData.price1dAgo,
-                      maxPeriodPrice,
-                    )}
-                  />
-                </BarWrapper>
-                <Small>
-                  {searchedPriceData.price1dAgo != null
-                    ? `${searchedPriceData.price1dAgo.toLocaleString()}원`
-                    : "-"}
-                </Small>
-              </ChartBarRow>
-
-              <ChartBarRow>
-                <Small>1주 전</Small>
-                <BarWrapper>
-                  <ActiveBar
-                    $widthPercent={calculateBarWidth(
-                      searchedPriceData.price1wAgo,
-                      maxPeriodPrice,
-                    )}
-                  />
-                </BarWrapper>
-                <Small>
-                  {searchedPriceData.price1wAgo != null
-                    ? `${searchedPriceData.price1wAgo.toLocaleString()}원`
-                    : "-"}
-                </Small>
-              </ChartBarRow>
-
-              <ChartBarRow>
-                <Small>2주 전</Small>
-                <BarWrapper>
-                  <ActiveBar
-                    $widthPercent={calculateBarWidth(
-                      searchedPriceData.price2wAgo,
-                      maxPeriodPrice,
-                    )}
-                  />
-                </BarWrapper>
-                <Small>
-                  {searchedPriceData.price2wAgo != null
-                    ? `${searchedPriceData.price2wAgo.toLocaleString()}원`
-                    : "-"}
-                </Small>
-              </ChartBarRow>
-
-              <ChartBarRow>
-                <Small>1달 전</Small>
-                <BarWrapper>
-                  <ActiveBar
-                    $widthPercent={calculateBarWidth(
-                      searchedPriceData.price1mAgo,
-                      maxPeriodPrice,
-                    )}
-                  />
-                </BarWrapper>
-                <Small>
-                  {searchedPriceData.price1mAgo != null
-                    ? `${searchedPriceData.price1mAgo.toLocaleString()}원`
-                    : "-"}
-                </Small>
-              </ChartBarRow>
-
-              <ChartBarRow>
-                <Small>1년 전</Small>
-                <BarWrapper>
-                  <ActiveBar
-                    $widthPercent={calculateBarWidth(
-                      searchedPriceData.price1yAgo,
-                      maxPeriodPrice,
-                    )}
-                  />
-                </BarWrapper>
-                <Small>
-                  {searchedPriceData.price1yAgo != null
-                    ? `${searchedPriceData.price1yAgo.toLocaleString()}원`
-                    : "-"}
-                </Small>
-              </ChartBarRow>
-
-              <ChartBarRow>
-                <Small style={{ color: "#059669", fontWeight: "bold" }}>
-                  평년 평균가
-                </Small>
-                <BarWrapper style={{ background: "#d1fae5" }}>
-                  <ActiveBar
-                    style={{
-                      background: "linear-gradient(90deg, #34d399, #059669)",
-                    }}
-                    $widthPercent={calculateBarWidth(
-                      searchedPriceData.priceAvgYear,
-                      maxPeriodPrice,
-                    )}
-                  />
-                </BarWrapper>
-                <strong style={{ color: "#059669" }}>
-                  {searchedPriceData.priceAvgYear != null
-                    ? `${searchedPriceData.priceAvgYear.toLocaleString()}원`
-                    : "-"}
-                </strong>
-              </ChartBarRow>
-            </ChartContainer>
-          </div>
-        )}
-
-        {!searchedPriceData && !isPriceLoading && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "30px 0",
-              color: "#94a3b8",
-              fontSize: "14px",
-            }}
-          >
-            분석실에 노출할 농산물 품목을 선택해 주세요.
-          </div>
-        )}
-      </Section>
+          )}
+        </Section>
+      </Container>
     </Page>
   );
 }
