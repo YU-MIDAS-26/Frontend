@@ -63,7 +63,7 @@ function SectionSaveFeedback({
   if (!showSuccess && !error) return null;
 
   return (
-    <div style={{ marginBottom: 10 }}>
+    <div style={{ marginBottom: 12 }}>
       {showSuccess && (
         <>
           <S.Value>
@@ -83,7 +83,7 @@ function SectionSaveFeedback({
           </SyncBanner>
         </>
       )}
-      {error && <S.Value>{error}</S.Value>}
+      {error && <S.Value style={{ color: "#b94a48" }}>{error}</S.Value>}
     </div>
   );
 }
@@ -93,7 +93,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
   const [salesOpen, setSalesOpen] = useState(true);
   const [expenseOpen, setExpenseOpen] = useState(true);
   const [variableOpen, setVariableOpen] = useState(true);
-  const [fixedOpen, setFixedOpen] = useState(false);
+  const [fixedOpen, setFixedOpen] = useState(true);
   const [salesSaveSuccess, setSalesSaveSuccess] = useState(false);
   const [salesSaveError, setSalesSaveError] = useState("");
   const [variableSaveSuccess, setVariableSaveSuccess] = useState(false);
@@ -377,7 +377,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
 
   return (
     <S.Section>
-      <S.SectionTitle>매출 입력</S.SectionTitle>
+      <S.SectionTitle>매출 / 지출 수기 입력</S.SectionTitle>
 
       <SectionSaveFeedback
         label="매출 입력"
@@ -391,7 +391,10 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
         $open={salesOpen}
         onClick={() => setSalesOpen((p) => !p)}
       >
-        매출 입력
+        <span>매출 입력</span>
+        <span style={{ fontSize: 13, color: "#64748b" }}>
+          {salesOpen ? "접기 ▲" : "펼치기 ▼"}
+        </span>
       </S.AccordionTitle>
       {salesOpen && (
         <S.Panel>
@@ -403,23 +406,19 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
             >
               <option value="daily">하루</option>
               <option value="hourly">특정 시간</option>
-              {/* A주석 BEGIN: 한주·한달 — period API 지원, 캘린더 미반영 시에도 입력 가능 */}
-              {/* <option value="weekly">한주</option> */}
-              {/* <option value="monthly">한달</option> */}
-              {/* A주석 END: 한주·한달 */}
             </S.Select>
           </S.Row>
           {salesCycle === "weekly" && (
             <ScopeNotice $variant="info">
-              「한주」로 저장한 매출·지출은 매출 확인의 첫째주·둘째주… 주간 요약에
-              표시됩니다. 일별 칸에는 넣지 않습니다.
+              「한주」로 저장한 매출·지출은 매출 확인의 첫째주·둘째주… 주간
+              요약에 표시됩니다. 일별 칸에는 넣지 않습니다.
             </ScopeNotice>
           )}
           {salesCycle === "monthly" && (
             <ScopeNotice $variant="info">
               「한달」로 저장한 매출·지출은 매출 확인 상단의{" "}
-              {Number(salesSelectedMonth.slice(5, 7))}월 매출·지출·순이익 합계에 포함됩니다.
-              일별 칸에는 넣지 않습니다.
+              {Number(salesSelectedMonth.slice(5, 7))}월 매출·지출·순이익 합계에
+              포함됩니다. 일별 칸에는 넣지 않습니다.
             </ScopeNotice>
           )}
           {!reflectsOnSalesCheck(salesCycle) && (
@@ -458,6 +457,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
               <S.Row key={slot}>
                 <S.Label>{slot}</S.Label>
                 <S.Input
+                  placeholder="금액 입력 (원)"
                   value={hourlyInputs[idx]}
                   onChange={(e) =>
                     setHourlyInputs((prev) =>
@@ -471,6 +471,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
             <S.Row>
               <S.Label>매출 금액</S.Label>
               <S.Input
+                placeholder="금액 입력 (원)"
                 value={salesAmountInput}
                 onChange={(e) => setSalesAmountInput(e.target.value)}
               />
@@ -493,18 +494,22 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
             <S.Label>저장 예정 금액</S.Label>
             <S.Value>{toWon(salesTotalInput)}원</S.Value>
           </S.Row>
-          <div style={{ display: "flex", gap: 8 }}>
-            <S.SaveButton type="button" onClick={saveSales} disabled={isSavingSales}>
-              매출 저장/수정
-            </S.SaveButton>
-            <S.SaveButton
+          <S.ButtonGroup>
+            <S.DeleteButton
               type="button"
               onClick={removeSales}
               disabled={deleteSalesMutation.isPending}
             >
               매출 삭제
+            </S.DeleteButton>
+            <S.SaveButton
+              type="button"
+              onClick={saveSales}
+              disabled={isSavingSales}
+            >
+              매출 저장/수정
             </S.SaveButton>
-          </div>
+          </S.ButtonGroup>
         </S.Panel>
       )}
 
@@ -513,7 +518,10 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
         $open={expenseOpen}
         onClick={() => setExpenseOpen((p) => !p)}
       >
-        지출 입력
+        <span>지출 입력</span>
+        <span style={{ fontSize: 13, color: "#64748b" }}>
+          {expenseOpen ? "접기 ▲" : "펼치기 ▼"}
+        </span>
       </S.AccordionTitle>
       {expenseOpen && (
         <>
@@ -524,13 +532,13 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
             onGoToCheck={onGoToCheck}
           />
 
-          <S.AccordionTitle
+          <S.SubAccordionTitle
             type="button"
             $open={variableOpen}
             onClick={() => setVariableOpen((p) => !p)}
           >
             변동비
-          </S.AccordionTitle>
+          </S.SubAccordionTitle>
           {variableOpen && (
             <S.Panel>
               <S.Row>
@@ -542,15 +550,12 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
                   }
                 >
                   <option value="daily">하루</option>
-                  {/* A주석 BEGIN: 변동비 한주·한달 */}
-                  {/* <option value="weekly">한주</option> */}
-                  {/* <option value="monthly">한달</option> */}
-                  {/* A주석 END: 변동비 한주·한달 */}
                 </S.Select>
               </S.Row>
               {expenseCycle === "weekly" && (
                 <ScopeNotice $variant="info">
-                  「한주」 변동비는 매출 확인의 주간 요약(첫째주·둘째주…)에 표시됩니다.
+                  「한주」 변동비는 매출 확인의 주간 요약(첫째주·둘째주…)에
+                  표시됩니다.
                 </ScopeNotice>
               )}
               {expenseCycle === "monthly" && (
@@ -584,12 +589,15 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
               />
 
               {loadingVariablePeriod && (
-                <S.PickerHint>서버에서 변동비 데이터를 불러오는 중...</S.PickerHint>
+                <S.PickerHint>
+                  서버에서 변동비 데이터를 불러오는 중...
+                </S.PickerHint>
               )}
 
               <S.Row>
                 <S.Label>직원 월급(자동값 연동)</S.Label>
                 <S.Input
+                  placeholder="금액 입력 (원)"
                   value={staffSalaryInput}
                   onChange={(e) => setStaffSalaryInput(e.target.value)}
                 />
@@ -597,6 +605,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
               <S.Row>
                 <S.Label>재료값</S.Label>
                 <S.Input
+                  placeholder="금액 입력 (원)"
                   value={ingredientCostInput}
                   onChange={(e) => setIngredientCostInput(e.target.value)}
                 />
@@ -618,13 +627,15 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
                 <S.Label>변동비 합계</S.Label>
                 <S.Value>{toWon(variableTotalInput)}원</S.Value>
               </S.Row>
-              <S.SaveButton
-                type="button"
-                onClick={saveVariable}
-                disabled={isSavingVariable}
-              >
-                변동비 저장/수정
-              </S.SaveButton>
+              <S.ButtonGroup>
+                <S.SaveButton
+                  type="button"
+                  onClick={saveVariable}
+                  disabled={isSavingVariable}
+                >
+                  변동비 저장/수정
+                </S.SaveButton>
+              </S.ButtonGroup>
             </S.Panel>
           )}
 
@@ -635,13 +646,13 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
             onGoToCheck={onGoToCheck}
           />
 
-          <S.AccordionTitle
+          <S.SubAccordionTitle
             type="button"
             $open={fixedOpen}
             onClick={() => setFixedOpen((p) => !p)}
           >
             고정비
-          </S.AccordionTitle>
+          </S.SubAccordionTitle>
           {fixedOpen && (
             <S.Panel>
               <S.Row>
@@ -653,11 +664,14 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
                 />
               </S.Row>
               {loadingFixedCost && (
-                <S.PickerHint>서버에서 고정비 데이터를 불러오는 중...</S.PickerHint>
+                <S.PickerHint>
+                  서버에서 고정비 데이터를 불러오는 중...
+                </S.PickerHint>
               )}
               <S.Row>
                 <S.Label>임대료</S.Label>
                 <S.Input
+                  placeholder="금액 입력 (원)"
                   value={rentInput}
                   onChange={(e) => setRentInput(e.target.value)}
                 />
@@ -665,6 +679,7 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
               <S.Row>
                 <S.Label>공과금</S.Label>
                 <S.Input
+                  placeholder="금액 입력 (원)"
                   value={utilitiesInput}
                   onChange={(e) => setUtilitiesInput(e.target.value)}
                 />
@@ -673,13 +688,15 @@ export default function SalesInput({ autoSalary, onGoToCheck }: Props) {
                 <S.Label>고정비 합계</S.Label>
                 <S.Value>{toWon(fixedTotalInput)}원</S.Value>
               </S.Row>
-              <S.SaveButton
-                type="button"
-                onClick={saveFixed}
-                disabled={isSavingFixed}
-              >
-                고정비 저장/수정
-              </S.SaveButton>
+              <S.ButtonGroup>
+                <S.SaveButton
+                  type="button"
+                  onClick={saveFixed}
+                  disabled={isSavingFixed}
+                >
+                  고정비 저장/수정
+                </S.SaveButton>
+              </S.ButtonGroup>
             </S.Panel>
           )}
         </>
