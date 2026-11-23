@@ -64,7 +64,7 @@ const RightSection = styled(Section)`
 const ActionButton = styled.button<{ $active?: boolean }>`
   border: none;
   background: transparent;
-  color: ${({ $active }) => ($active ? "#2563eb" : "#334155")};
+  color: ${({ $active }) => ($active ? "#5c7f96" : "#334155")};
   font-size: 15px;
   font-family: "Segoe UI", "Noto Sans KR", sans-serif;
   font-weight: ${({ $active }) => ($active ? 700 : 600)};
@@ -72,13 +72,13 @@ const ActionButton = styled.button<{ $active?: boolean }>`
   cursor: pointer;
   padding: 8px 4px;
   border-bottom: 2px solid
-    ${({ $active }) => ($active ? "#2563eb" : "transparent")};
+    ${({ $active }) => ($active ? "#7ea0b7" : "transparent")};
   transition:
     color 0.15s ease,
     border-color 0.15s ease;
 
   &:hover {
-    color: #2563eb;
+    color: #5c7f96;
   }
 `;
 
