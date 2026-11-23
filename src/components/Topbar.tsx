@@ -18,6 +18,7 @@ const Bar = styled.header`
   min-height: 68px;
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   padding-inline: var(--app-gutter);
   box-sizing: border-box;
 `;
@@ -63,7 +64,7 @@ const RightSection = styled(Section)`
 const ActionButton = styled.button<{ $active?: boolean }>`
   border: none;
   background: transparent;
-  color: ${({ $active }) => ($active ? "#4f738e" : "#334155")};
+  color: ${({ $active }) => ($active ? "#2563eb" : "#334155")};
   font-size: 15px;
   font-family: "Segoe UI", "Noto Sans KR", sans-serif;
   font-weight: ${({ $active }) => ($active ? 700 : 600)};
@@ -71,20 +72,20 @@ const ActionButton = styled.button<{ $active?: boolean }>`
   cursor: pointer;
   padding: 8px 4px;
   border-bottom: 2px solid
-    ${({ $active }) => ($active ? "#7ea0b7" : "transparent")};
+    ${({ $active }) => ($active ? "#2563eb" : "transparent")};
   transition:
     color 0.15s ease,
     border-color 0.15s ease;
 
   &:hover {
-    color: #4f738e;
+    color: #2563eb;
   }
 `;
 
 const LogoButton = styled.button`
   border: none;
   background: transparent;
-  color: #3b5970;
+  color: #0f172a;
   font-size: 20px;
   font-family: "Segoe UI", "Noto Sans KR", sans-serif;
   font-weight: 800;
