@@ -1,8 +1,10 @@
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
 
 import { Checkbox } from "../components/Common";
+import { PRIVACY_POLICY, TERMS_OF_SERVICE } from "../components/terms";
 
 import {
   Page,
@@ -32,6 +34,20 @@ import {
   useRequestEmailVerificationMutation,
   useVerifyEmailVerificationMutation,
 } from "../api/register_api";
+
+const TermsBox = styled.div`
+  max-height: 110px;
+  overflow-y: auto;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-line;
+`;
 
 function Register() {
   const navigate = useNavigate();
@@ -85,6 +101,14 @@ function Register() {
     isStudentIdChecked &&
     agreedToTerms1 &&
     agreedToTerms2;
+
+  const handleToggleTerms1 = () => {
+    setAgreedToTerms1((prev) => !prev);
+  };
+
+  const handleToggleTerms2 = () => {
+    setAgreedToTerms2((prev) => !prev);
+  };
 
   const handleRequestEmailCode = async () => {
     try {
@@ -350,28 +374,44 @@ function Register() {
               <Message $tone="error">비밀번호가 일치하지 않습니다.</Message>
             ) : null}
 
+            <TermsBox>{TERMS_OF_SERVICE}</TermsBox>
             <CheckboxRow>
               <CheckboxButton
                 type="button"
-                aria-label="약관동의1"
+                aria-label="서비스 이용약관 동의"
                 aria-pressed={agreedToTerms1}
-                onClick={() => setAgreedToTerms1((prev) => !prev)}
+                onClick={handleToggleTerms1}
               >
                 <Checkbox checked={agreedToTerms1} />
               </CheckboxButton>
-              <CheckboxLabel>약관동의1</CheckboxLabel>
+              <CheckboxLabel
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleToggleTerms1();
+                }}
+              >
+                [필수] 서비스 이용약관 동의
+              </CheckboxLabel>
             </CheckboxRow>
 
+            <TermsBox>{PRIVACY_POLICY}</TermsBox>
             <CheckboxRow>
               <CheckboxButton
                 type="button"
-                aria-label="약관동의2"
+                aria-label="개인정보 수집 및 이용 동의"
                 aria-pressed={agreedToTerms2}
-                onClick={() => setAgreedToTerms2((prev) => !prev)}
+                onClick={handleToggleTerms2}
               >
                 <Checkbox checked={agreedToTerms2} />
               </CheckboxButton>
-              <CheckboxLabel>약관동의2</CheckboxLabel>
+              <CheckboxLabel
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleToggleTerms2();
+                }}
+              >
+                [필수] 개인정보 수집 및 이용 동의
+              </CheckboxLabel>
             </CheckboxRow>
           </Fields>
 
