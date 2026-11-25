@@ -34,21 +34,24 @@ const CHANNEL_COLORS = {
   DELIVERY: "#d99b38", // 배달: 차분한 앰버
 };
 
+function formatDateKey(year: number, month: number, day: number): string {
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
 function fillMonthDates(
   stats: DailyStats[],
   year: number,
   month: number,
 ): DailyStats[] {
   const map = new Map(stats.map((s) => [s.date, s]));
+  const lastDay = new Date(year, month, 0).getDate();
   const result: DailyStats[] = [];
 
-  const from = new Date(year, month - 1, 1);
-  const to = new Date(year, month, 0);
-
-  for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
-    const key = d.toISOString().split("T")[0];
+  for (let day = 1; day <= lastDay; day++) {
+    const key = formatDateKey(year, month, day);
     result.push(map.get(key) ?? { date: key, amount: 0, count: 0 });
   }
+
   return result;
 }
 
