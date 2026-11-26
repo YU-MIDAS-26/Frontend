@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo } from "react";
 import styled from "styled-components";
 import {
   ingredientApi,
-  naverApi,
   priceApi,
   type IngredientData,
   type NaverShopItem,
@@ -431,50 +430,10 @@ export default function IngredientPage() {
     setEditingId(item.id);
   };
 
-  const handleShowStores = async (item: IngredientItem) => {
-    if (item.showStores) {
-      setIngredients((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, showStores: false } : i)),
-      );
-      return;
-    }
-
-    if (!item.stores) {
-      setIngredients((prev) =>
-        prev.map((i) =>
-          i.id === item.id
-            ? { ...i, loadingStores: true, showStores: true }
-            : i,
-        ),
-      );
-
-      try {
-        const res = await naverApi.getLowestPrice(item.name, 5);
-        if (res.status === "SUCCESS") {
-          setIngredients((prev) =>
-            prev.map((i) =>
-              i.id === item.id
-                ? { ...i, stores: res.data.items, loadingStores: false }
-                : i,
-            ),
-          );
-        }
-      } catch (error) {
-        console.error(error);
-        alert("최저가 정보를 가져오지 못했습니다.");
-        setIngredients((prev) =>
-          prev.map((i) =>
-            i.id === item.id
-              ? { ...i, loadingStores: false, showStores: false }
-              : i,
-          ),
-        );
-      }
-    } else {
-      setIngredients((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, showStores: true } : i)),
-      );
-    }
+  // 네이버 쇼핑 검색 API 종료(2026-07-31)로 최저가 검색은 네이버 쇼핑 낮은가격순 검색 페이지로 연결
+  const handleShowStores = (item: IngredientItem) => {
+    const url = `https://search.shopping.naver.com/search/all?query=${encodeURIComponent(item.name)}&sort=price_asc`;
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handleFetchKamisPrice = async (targetName: string) => {
